@@ -1,0 +1,31 @@
+{
+  "name": "vrms-slackbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "NODE_PATH=dist node dist/index.js",
+    "dev": "NODE_PATH=src nodemon src/index.ts",
+    "build": "rm -rf dist && tsc -p ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^3.11.0",
+    "@slack/bolt": "^3.10.0",
+    "agenda": "^4.2.1",
+    "dayjs": "^1.11.0",
+    "line-reader": "^0.4.0",
+    "mongodb": "^4.4.1",
+    "rrule": "^2.6.4"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.21",
+    "dotenv": "^16.0.0",
+    "nodemon": "^2.0.15",
+    "prisma": "^3.11.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  }
+}

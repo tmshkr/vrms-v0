@@ -1,0 +1,3 @@
+[submodule "slackbot/content"]
+	path = slackbot/content
+	url = https://github.com/tmshkr/vrms-content.git

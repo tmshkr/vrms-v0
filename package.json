@@ -1,0 +1,37 @@
+{
+  "name": "vrms-heroku",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "cd next && npm install && cd ../slackbot && npm install",
+    "build": "cd next && npm run build && cd ../slackbot && npm run build",
+    "dev": "concurrently 'cd next && npm run dev' 'cd slackbot && npm run dev'",
+    "start:web": "cd next && npm run start",
+    "start:worker": "cd slackbot && npm run start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tmshkr/vrms-heroku.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tmshkr/vrms-heroku/issues"
+  },
+  "homepage": "https://github.com/tmshkr/vrms-heroku#readme",
+  "devDependencies": {
+    "@types/node": "^17.0.21",
+    "concurrently": "^7.2.1",
+    "dotenv": "^16.0.0",
+    "nodemon": "^2.0.15",
+    "prisma": "^3.11.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.11.0"
+  }
+}

@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppRole {
+  ADMIN
+  FACILITATOR
+}
+
+model AppRoleOnUser {
+  id       Int     @id @default(autoincrement())
+  role     AppRole
+  slack_id String
+  user     User    @relation(fields: [slack_id], references: [slack_id])
+
+  @@unique([slack_id, role])
+}
+
+model User {
+  slack_id            String               @id
+  app_roles           AppRoleOnUser[]
+  created_meetings    Meeting[]
+  created_projects    Project[]
+  meeting_assignments MeetingParticipant[]
+  team_assignments    TeamMember[]
+}
+
+model Project {
+  id              Int          @id @default(autoincrement())
+  is_active       Boolean      @default(true)
+  created_by      String
+  created_by_user User         @relation(fields: [created_by], references: [slack_id])
+  meetings        Meeting[]
+  name            String
+  team_members    TeamMember[]
+}
+
+enum ProjectRole {
+  OWNER
+  MEMBER
+}
+
+model TeamMember {
+  id         Int         @id @default(autoincrement())
+  is_active  Boolean     @default(true)
+  project    Project     @relation(fields: [project_id], references: [id])
+  project_id Int
+  role       ProjectRole @default(MEMBER)
+  slack_id   String
+  user       User        @relation(fields: [slack_id], references: [slack_id])
+
+  @@unique([slack_id, project_id])
+}
+
+model Meeting {
+  id               Int                  @id @default(autoincrement())
+  created_by       String
+  created_by_user  User                 @relation(fields: [created_by], references: [slack_id])
+  duration         Int // in minutes
+  is_active        Boolean              @default(true)
+  participants     MeetingParticipant[]
+  project          Project              @relation(fields: [project_id], references: [id])
+  project_id       Int
+  rrule            String?
+  slack_channel_id String
+  start_date       DateTime
+  title            String
+}
+
+model MeetingParticipant {
+  id         Int     @id @default(autoincrement())
+  is_active  Boolean @default(true)
+  meeting    Meeting @relation(fields: [meeting_id], references: [id])
+  meeting_id Int
+  slack_id   String
+  user       User    @relation(fields: [slack_id], references: [slack_id])
+
+  @@unique([meeting_id, slack_id])
+}
