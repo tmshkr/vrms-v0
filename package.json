@@ -1,8 +1,7 @@
 {
-  "name": "vrms-heroku",
+  "name": "vrms",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "postinstall": "cd next && npm install && cd ../slackbot && npm install",
     "build": "cd next && npm run build && cd ../slackbot && npm run build",
@@ -13,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tmshkr/vrms-heroku.git"
+    "url": "git+https://github.com/tmshkr/vrms.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/tmshkr/vrms-heroku/issues"
+    "url": "https://github.com/tmshkr/vrms/issues"
   },
-  "homepage": "https://github.com/tmshkr/vrms-heroku#readme",
+  "homepage": "https://github.com/tmshkr/vrms#readme",
   "devDependencies": {
     "concurrently": "^7.2.1",
     "dotenv": "^16.0.0",
