@@ -95,6 +95,17 @@ export const getHomeTab = async (slack_id) => {
             type: "mrkdwn",
             text: `Here you'll find an overview of your projects and upcoming meetings.`,
           },
+          accessory: {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Open Dashboard",
+              emoji: true,
+            },
+            url: process.env.NEXTAUTH_URL,
+            action_id: "open_dashboard",
+            style: "primary",
+          },
         },
         {
           type: "divider",

@@ -55,6 +55,10 @@ export const registerActions = () => {
     }
   });
 
+  app.action("open_dashboard", async ({ body, ack, say }) => {
+    await ack();
+  });
+
   app.action("role_select", async ({ body, client, ack, logger }) => {
     await ack();
     const selectedRole = body.actions[0].selected_option.value;
