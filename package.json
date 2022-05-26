@@ -35,6 +35,10 @@
     "eslint-config-next": "12.1.6"
   },
   "dependencies": {
-    "@prisma/client": "^3.11.0"
+    "@prisma/client": "^3.11.0",
+    "@slack/bolt": "^3.10.0"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
