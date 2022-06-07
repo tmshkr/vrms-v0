@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "install:dev": "npm install && npm run install:next && npm run install:slackbot",
     "install:next": "cd next && npm install",
     "install:slackbot": "cd slackbot && npm install",
-    "build:next": "cd next && npm run build",
     "build:slackbot": "cd slackbot && npm run build",
     "build": "npm run build:slackbot",
     "heroku-prebuild": "npm run install:slackbot",
