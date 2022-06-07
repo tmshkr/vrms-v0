@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "postinstall": "cd next && npm install && cd ../slackbot && npm install",
-    "build": "cd next && npm run build && cd ../slackbot && npm run build",
+    "install:next": "cd next && npm install",
+    "install:slackbot": "cd slackbot && npm install",
+    "build:next": "cd next && npm run build",
+    "build:slackbot": "cd slackbot && npm run build",
+    "build": "npm run build:slackbot",
+    "heroku-prebuild": "npm run install:slackbot",
     "dev": "concurrently 'cd next && npm run dev' 'cd slackbot && npm run dev'",
-    "start:web": "cd next && npm run start",
-    "start:worker": "cd slackbot && npm run start",
+    "start:next": "cd next && npm run start",
+    "start:slackbot": "cd slackbot && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
