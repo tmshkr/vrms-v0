@@ -10,7 +10,6 @@
     "build": "npm run build:slackbot",
     "heroku-prebuild": "npm run install:slackbot",
     "dev": "concurrently 'cd next && npm run dev' 'cd slackbot && npm run dev'",
-    "start:next": "cd next && npm run start",
     "start:slackbot": "cd slackbot && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
