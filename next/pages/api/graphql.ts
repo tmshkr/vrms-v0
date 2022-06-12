@@ -1,18 +1,20 @@
 import { createServer } from "@graphql-yoga/node";
+import prisma from "lib/prisma";
 
 const typeDefs = /* GraphQL */ `
   type Query {
     users: [User!]!
   }
   type User {
-    name: String
+    slack_id: String
   }
 `;
 
 const resolvers = {
   Query: {
-    users(parent, args, context) {
-      return [{ name: "Nextjs" }];
+    async users(parent, args, context) {
+      const users = await prisma.user.findMany({ where: {} });
+      return users;
     },
   },
 };
