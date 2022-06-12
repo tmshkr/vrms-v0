@@ -5,19 +5,24 @@ const typeDefs = `
   scalar DateTime
 
   type Query {
-    users: [User!]!
-    projects: [Project!]
-    meetings: [Meeting!]
+    users: [User]
+    projects: [Project]
+    meetings: [Meeting]
   }
+
   type User {
     slack_id: String
-    meetings: [Meeting!]
+    meetings: [Meeting]
+    projects: [Project]
   }
+  
   type Project {
     id: Int
     created_by: String
     is_active: Boolean
+    meetings: [Meeting]
     name: String
+    users: [User]
   }
 
   type Meeting {
@@ -25,26 +30,25 @@ const typeDefs = `
     created_by: String
     duration: Int
     is_active: Boolean
+    project: Project!
     project_id: Int
     rrule: String
     slack_channel_id: String
     start_date: DateTime
     title: String
+    users: [User]
   }
 `;
 
 const resolvers = {
   Query: {
     users(parent, args, context) {
-      console.log("Query.users", { parent, args });
       return prisma.user.findMany();
     },
     projects(parent, args, context) {
-      console.log("Query.projects", { parent, args });
       return prisma.project.findMany();
     },
     meetings(parent, args, context) {
-      console.log("Query.meetings", { parent, args });
       return prisma.meeting.findMany();
     },
   },
@@ -58,6 +62,16 @@ const resolvers = {
         })
         .then((data) =>
           data.map((meeting_assignment) => meeting_assignment.meeting)
+        );
+    },
+    projects(parent, args, context) {
+      return prisma.teamMember
+        .findMany({
+          where: { slack_id: parent.slack_id },
+          include: { project: true },
+        })
+        .then((data) =>
+          data.map((project_assignment) => project_assignment.project)
         );
     },
   },
