@@ -1,7 +1,9 @@
 import { createServer } from "@graphql-yoga/node";
 import prisma from "lib/prisma";
 
-const typeDefs = /* GraphQL */ `
+const typeDefs = `
+  scalar DateTime
+
   type Query {
     users: [User!]!
     projects: [Project!]
@@ -26,7 +28,7 @@ const typeDefs = /* GraphQL */ `
     project_id: Int
     rrule: String
     slack_channel_id: String
-    start_date: String
+    start_date: DateTime
     title: String
   }
 `;
@@ -35,17 +37,15 @@ const resolvers = {
   Query: {
     users(parent, args, context) {
       console.log("Query.users", { parent, args });
-      return prisma.user.findMany({
-        where: {},
-      });
+      return prisma.user.findMany();
     },
     projects(parent, args, context) {
       console.log("Query.projects", { parent, args });
-      return prisma.project.findMany({ where: {} });
+      return prisma.project.findMany();
     },
     meetings(parent, args, context) {
       console.log("Query.meetings", { parent, args });
-      return prisma.meeting.findMany({ where: {} });
+      return prisma.meeting.findMany();
     },
   },
   User: {
