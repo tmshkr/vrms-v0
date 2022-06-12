@@ -54,7 +54,6 @@ const resolvers = {
   },
   User: {
     meetings(parent, args, context) {
-      console.log("User.meetings", { parent, args });
       return prisma.meetingParticipant
         .findMany({
           where: { slack_id: parent.slack_id },
@@ -73,6 +72,30 @@ const resolvers = {
         .then((data) =>
           data.map((project_assignment) => project_assignment.project)
         );
+    },
+  },
+  Project: {
+    meetings(parent, args, context) {
+      return prisma.meeting.findMany({
+        where: { project_id: parent.id },
+      });
+    },
+    users(parent, args, context) {
+      return prisma.teamMember.findMany({
+        where: { project_id: parent.id },
+      });
+    },
+  },
+  Meeting: {
+    users(parent, args, context) {
+      return prisma.meetingParticipant
+        .findMany({ where: { meeting_id: parent.id }, include: { user: true } })
+        .then((data) => {
+          return data.map((meetingParticipant) => meetingParticipant.user);
+        });
+    },
+    project(parent, args, context) {
+      return prisma.project.findUnique({ where: { id: parent.project_id } });
     },
   },
 };
