@@ -11,18 +11,18 @@ const typeDefs = /* GraphQL */ `
     slack_id: String
   }
   type Project {
-    id: ID
+    id: Int
     created_by: String
     is_active: Boolean
     name: String
   }
 
   type Meeting {
-    id: ID
+    id: Int
     created_by: String
     duration: Int
     is_active: Boolean
-    project_id: ID
+    project_id: Int
     rrule: String
     slack_channel_id: String
     start_date: String
