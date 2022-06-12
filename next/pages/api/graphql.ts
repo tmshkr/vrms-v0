@@ -9,6 +9,7 @@ const typeDefs = /* GraphQL */ `
   }
   type User {
     slack_id: String
+    meetings: [Meeting!]
   }
   type Project {
     id: Int
@@ -33,13 +34,31 @@ const typeDefs = /* GraphQL */ `
 const resolvers = {
   Query: {
     users(parent, args, context) {
-      return prisma.user.findMany({ where: {} });
+      console.log("Query.users", { parent, args });
+      return prisma.user.findMany({
+        where: {},
+      });
     },
     projects(parent, args, context) {
+      console.log("Query.projects", { parent, args });
       return prisma.project.findMany({ where: {} });
     },
     meetings(parent, args, context) {
+      console.log("Query.meetings", { parent, args });
       return prisma.meeting.findMany({ where: {} });
+    },
+  },
+  User: {
+    meetings(parent, args, context) {
+      console.log("User.meetings", { parent, args });
+      return prisma.meetingParticipant
+        .findMany({
+          where: { slack_id: parent.slack_id },
+          include: { meeting: true },
+        })
+        .then((data) =>
+          data.map((meeting_assignment) => meeting_assignment.meeting)
+        );
     },
   },
 };
