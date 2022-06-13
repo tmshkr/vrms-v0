@@ -61,9 +61,7 @@ const resolvers = {
           where: { slack_id: parent.slack_id },
           include: { meeting: true },
         })
-        .then((data) =>
-          data.map((meeting_assignment) => meeting_assignment.meeting)
-        );
+        .then((data) => data.map(({ meeting }) => meeting));
     },
     projects(parent, args, context) {
       return prisma.teamMember
@@ -71,9 +69,7 @@ const resolvers = {
           where: { slack_id: parent.slack_id },
           include: { project: true },
         })
-        .then((data) =>
-          data.map((project_assignment) => project_assignment.project)
-        );
+        .then((data) => data.map(({ project }) => project));
     },
   },
   Project: {
@@ -83,9 +79,14 @@ const resolvers = {
       });
     },
     users(parent, args, context) {
-      return prisma.teamMember.findMany({
-        where: { project_id: parent.id },
-      });
+      return prisma.teamMember
+        .findMany({
+          where: { project_id: parent.id },
+          include: { user: true },
+        })
+        .then((data) => {
+          return data.map(({ user }) => user);
+        });
     },
   },
   Meeting: {
@@ -93,7 +94,7 @@ const resolvers = {
       return prisma.meetingParticipant
         .findMany({ where: { meeting_id: parent.id }, include: { user: true } })
         .then((data) => {
-          return data.map((meetingParticipant) => meetingParticipant.user);
+          return data.map(({ user }) => user);
         });
     },
     project(parent, args, context) {
