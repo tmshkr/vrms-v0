@@ -20,10 +20,15 @@ const app = new App({
   );
 
   for (const user of users) {
+    const row = {
+      slack_id: user.id,
+      real_name: user.real_name,
+      email: user.profile.email,
+    };
     await prisma.user.upsert({
       where: { slack_id: user.id },
-      update: {},
-      create: { slack_id: user.id },
+      update: row,
+      create: row,
     });
     console.log(`added user ${user.id}`);
   }
