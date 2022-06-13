@@ -29,7 +29,9 @@ model User {
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
+  email               String?
   meeting_assignments MeetingParticipant[]
+  real_name           String?
   team_assignments    TeamMember[]
 }
 
