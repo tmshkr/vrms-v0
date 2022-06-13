@@ -11,9 +11,11 @@ const typeDefs = `
   }
 
   type User {
+    email: String
     slack_id: String
     meetings: [Meeting]
     projects: [Project]
+    real_name: String
   }
   
   type Project {
