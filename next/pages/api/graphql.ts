@@ -11,7 +11,6 @@ const typeDefs = `
   }
 
   type User {
-    email: String
     slack_id: String
     meetings: [Meeting]
     projects: [Project]
@@ -45,7 +44,13 @@ const typeDefs = `
 const resolvers = {
   Query: {
     users(parent, args, context) {
-      return prisma.user.findMany();
+      return prisma.user.findMany({
+        select: {
+          email: false,
+          real_name: true,
+          slack_id: true,
+        },
+      });
     },
     projects(parent, args, context) {
       return prisma.project.findMany();
@@ -54,6 +59,7 @@ const resolvers = {
       return prisma.meeting.findMany();
     },
   },
+
   User: {
     meetings(parent, args, context) {
       return prisma.meetingParticipant
@@ -72,6 +78,7 @@ const resolvers = {
         .then((data) => data.map(({ project }) => project));
     },
   },
+
   Project: {
     meetings(parent, args, context) {
       return prisma.meeting.findMany({
@@ -82,17 +89,37 @@ const resolvers = {
       return prisma.teamMember
         .findMany({
           where: { project_id: parent.id },
-          include: { user: true },
+          include: {
+            user: {
+              select: {
+                email: false,
+                real_name: true,
+                slack_id: true,
+              },
+            },
+          },
         })
         .then((data) => {
           return data.map(({ user }) => user);
         });
     },
   },
+
   Meeting: {
     users(parent, args, context) {
       return prisma.meetingParticipant
-        .findMany({ where: { meeting_id: parent.id }, include: { user: true } })
+        .findMany({
+          where: { meeting_id: parent.id },
+          include: {
+            user: {
+              select: {
+                email: false,
+                real_name: true,
+                slack_id: true,
+              },
+            },
+          },
+        })
         .then((data) => {
           return data.map(({ user }) => user);
         });
