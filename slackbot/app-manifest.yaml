@@ -10,10 +10,6 @@ features:
   bot_user:
     display_name: VRMS-dev-YOUR-NAME
     always_online: true
-  slash_commands:
-    - command: /onboard
-      description: Onboard user
-      should_escape: false
 oauth_config:
   redirect_urls:
     - https://hackforla.vercel.app/api/auth/callback/slack
