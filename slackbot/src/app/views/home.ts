@@ -52,7 +52,7 @@ export const getHomeTab = async (slack_id) => {
   });
 
   const [quote] = await axios
-    .get("https://zenquotes.io/api/random")
+    .get("https://zenquotes.io/api/today")
     .then((res) => res.data)
     .catch(console.error);
 
