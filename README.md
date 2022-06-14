@@ -1,12 +1,30 @@
 # vrms
 
+## Overview
+
+A Slack app to help volunteers create, manage, and view projects and meetings.
+
+## Tech Stack
+
+- [GraphQL Yoga](https://www.graphql-yoga.com/)
+- [Heroku](https://www.heroku.com/)
+- [MongoDB](https://github.com/mongodb/node-mongodb-native)
+- [NextJS](https://nextjs.org/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [Prisma](https://www.prisma.io/)
+- [Slack Bolt](https://slack.dev/bolt-js/tutorial/getting-started)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vercel](https://vercel.com/)
+
 ## Getting Started
 
-Once you've [forked](https://github.com/tmshkr/vrms/fork) and cloned the repository,
+Once you've [forked](https://github.com/tmshkr/vrms/fork) the repository,
+clone it to your local machine with the `--recurse-submodules` option and
 install the dependencies with the following command:
 
 ```
-npm run install:dev
+git clone https://github.com/YOUR_USERNAME/vrms.git --recurse-submodules
+cd vrms && npm run install:dev
 ```
 
 ### Create your `.env` file
@@ -23,6 +41,13 @@ You'll need a Postgres database, so you can either run one locally
 or use a service like [ElephantSQL](https://www.elephantsql.com/).
 
 Provide your connection string starting with `postgres://` as the `DATABASE_URL` in your `.env`.
+
+To generate the Prisma client and push the schema to your database, run the following commands:
+
+```
+npx prisma generate
+npx prisma db push
+```
 
 You'll also need a MongoDB instance for task scheduling with [Agenda](https://github.com/agenda/agenda)
 and other document data storage.
@@ -83,3 +108,15 @@ Copy and paste the token starting with `xapp` as the `SLACK_APP_TOKEN` in your `
 
 To get the `SLACK_BOT_TOKEN`, click **OAuth & Permissions** from the sidebar under the **Features** heading.
 On that page, you'll find the **Bot User OAuth Token** starting with `xoxb`.
+
+You should now be able to use the app in your workspace.
+
+Find it in the **Apps** sidebar and go to the Home tab to see your app's homepage.
+
+### Prisma Studio
+
+As you make changes to the database, you can see the live data using [Prisma Studio](https://www.prisma.io/studio):
+
+```
+npx prisma studio
+```
