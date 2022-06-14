@@ -9,6 +9,14 @@ install the dependencies with the following command:
 npm run install:dev
 ```
 
+### Create your `.env` file
+
+To create your `.env` file, copy it from `.env.example`:
+
+```
+cp .env.example .env
+```
+
 ### Provision your databases
 
 You'll need a Postgres database, so you can either run one locally
@@ -22,7 +30,7 @@ and other document data storage.
 [MongoDB Cloud](https://www.mongodb.com/cloud) or a local MongoDB server
 can be used to provide your `MONGO_URI` connection string.
 
-### Next.js environment variables
+### Next.js setup
 
 Next.js will look for the `.env` file in its [own folder](./next), so you can use a symlink to
 avoid having two separate `.env` files.
@@ -33,11 +41,25 @@ On a Mac, you can create a symlink by running the following command from root di
 ln -s ../.env next/.env
 ```
 
+Slack requires the sign-in redirect URL to be served over HTTPS,
+so you can generate your own self-signed certificate with the following command:
+
+```
+mkdir next/certificates && cd next/certificates
+openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -days 365 \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")
+```
+
+You can follow the directions in this [Medium article](https://medium.com/@greg.farrow1/nextjs-https-for-a-local-dev-server-98bb441eabd7) to trust the certificate on your local machine.
+
 ### Create a Slack app
 
 Go to [Your Apps](https://api.slack.com/apps) and click **Create New App**.
 
-In the **Create an app** modal that appears, select the option **From an app manifest**.
+In the **Create an app** modal that appears, select **From an app manifest**.
 
 Select the workspace you want to develop your app in, and then provide the [app manifest](./slackbot/app-manifest.yaml).
 
