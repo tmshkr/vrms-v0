@@ -9,12 +9,29 @@ install the dependencies with the following command:
 npm run install:dev
 ```
 
-### Provision a database
+### Provision your databases
 
 You'll need a Postgres database, so you can either run one locally
 or use a service like [ElephantSQL](https://www.elephantsql.com/).
 
 Provide your connection string starting with `postgres://` as the `DATABASE_URL` in your `.env`.
+
+You'll also need a MongoDB instance for task scheduling with [Agenda](https://github.com/agenda/agenda)
+and other document data storage.
+
+[MongoDB Cloud](https://www.mongodb.com/cloud) or a local MongoDB server
+can be used to provide your `MONGO_URI` connection string.
+
+### Next.js environment variables
+
+Next.js will look for the `.env` file in its [own folder](./next), so you can use a symlink to
+avoid having two separate `.env` files.
+
+On a Mac, you can create a symlink by running the following command from root directory of the repo:
+
+```
+ln -s ../.env next/.env
+```
 
 ### Create a Slack app
 
