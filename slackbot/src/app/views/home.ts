@@ -1,6 +1,7 @@
 import prisma from "lib/prisma";
 import dayjs from "lib/dayjs";
 import { getNextOccurrence } from "lib/rrule";
+import axios from "axios";
 
 const renderProject = (project) => {
   return {
@@ -49,6 +50,11 @@ export const getHomeTab = async (slack_id) => {
     update: {},
     create: { slack_id },
   });
+
+  const [quote] = await axios
+    .get("https://zenquotes.io/api/random")
+    .then((res) => res.data)
+    .catch(console.error);
 
   const userOverview = await prisma.user
     .findUnique({
@@ -165,6 +171,16 @@ export const getHomeTab = async (slack_id) => {
           },
         },
         ...userOverview.meetings,
+        {
+          type: "divider",
+        },
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `_${quote.q}_\n${quote.a}`,
+          },
+        },
       ],
     },
   };
