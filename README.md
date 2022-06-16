@@ -42,13 +42,6 @@ or use a service like [ElephantSQL](https://www.elephantsql.com/).
 
 Provide your connection string starting with `postgres://` as the `DATABASE_URL` in your `.env`.
 
-To generate the Prisma client and push the schema to your database, run the following commands:
-
-```
-npx prisma generate
-npx prisma db push
-```
-
 You'll also need a MongoDB instance for task scheduling with [Agenda](https://github.com/agenda/agenda)
 and other document data storage.
 
@@ -109,6 +102,22 @@ Copy and paste the token starting with `xapp` as the `SLACK_APP_TOKEN` in your `
 To get the `SLACK_BOT_TOKEN`, click **OAuth & Permissions** from the sidebar under the **Features** heading.
 On that page, you'll find the **Bot User OAuth Token** starting with `xoxb`.
 
+### Migrate and seed the database
+
+Before you can use the database, you'll need to generate the Prisma client, push the schema to your database, and seed the database with users from Slack:
+
+```
+npx prisma generate
+npx prisma db push
+npx prisma db seed
+```
+
+As you make changes to the database, you can see the live data using [Prisma Studio](https://www.prisma.io/studio):
+
+```
+npx prisma studio
+```
+
 ### Start the dev server
 
 Start the dev server with the following command:
@@ -120,11 +129,3 @@ npm run dev
 You should now be able to use the app in your workspace.
 
 Find it in the **Apps** sidebar and go to the Home tab to see your app's homepage.
-
-### Prisma Studio
-
-As you make changes to the database, you can see the live data using [Prisma Studio](https://www.prisma.io/studio):
-
-```
-npx prisma studio
-```
