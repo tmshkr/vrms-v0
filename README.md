@@ -109,6 +109,14 @@ Copy and paste the token starting with `xapp` as the `SLACK_APP_TOKEN` in your `
 To get the `SLACK_BOT_TOKEN`, click **OAuth & Permissions** from the sidebar under the **Features** heading.
 On that page, you'll find the **Bot User OAuth Token** starting with `xoxb`.
 
+### Start the dev server
+
+Start the dev server with the following command:
+
+```
+npm run dev
+```
+
 You should now be able to use the app in your workspace.
 
 Find it in the **Apps** sidebar and go to the Home tab to see your app's homepage.
