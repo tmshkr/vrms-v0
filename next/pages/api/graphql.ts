@@ -23,7 +23,7 @@ const typeDefs = `
     is_active: Boolean
     meetings: [Meeting]
     name: String
-    users: [User]
+    teamMembers: [User]
   }
 
   type Meeting {
@@ -37,7 +37,7 @@ const typeDefs = `
     slack_channel_id: String
     start_date: DateTime
     title: String
-    users: [User]
+    meetingParticipants: [User]
   }
 `;
 
@@ -85,7 +85,7 @@ const resolvers = {
         where: { project_id: parent.id },
       });
     },
-    users(parent, args, context) {
+    teamMembers(parent, args, context) {
       return prisma.teamMember
         .findMany({
           where: { project_id: parent.id },
@@ -106,7 +106,7 @@ const resolvers = {
   },
 
   Meeting: {
-    users(parent, args, context) {
+    meetingParticipants(parent, args, context) {
       return prisma.meetingParticipant
         .findMany({
           where: { meeting_id: parent.id },
