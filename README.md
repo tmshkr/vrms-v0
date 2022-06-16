@@ -108,7 +108,7 @@ Before you can use the database, you'll need to generate the Prisma client, push
 
 ```
 npx prisma generate
-npx prisma db push
+npx prisma migrate deploy
 npx prisma db seed
 ```
 
