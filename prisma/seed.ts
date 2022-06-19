@@ -14,22 +14,19 @@ const app = new App({
 
 (async () => {
   console.log("fetching users");
-  const result = await app.client.users.list();
-  const users = result.members.filter(
-    (x) => x.is_bot === false && x.name !== "slackbot"
-  );
+  const users = await app.client.users.list().then((res) => {
+    return res.members
+      .filter((user) => user.is_bot === false && user.name !== "slackbot")
+      .map((user) => ({
+        slack_id: user.id,
+        real_name: user.real_name,
+        email: user.profile.email,
+      }));
+  });
 
-  for (const user of users) {
-    const row = {
-      slack_id: user.id,
-      real_name: user.real_name,
-      email: user.profile.email,
-    };
-    await prisma.user.upsert({
-      where: { slack_id: user.id },
-      update: row,
-      create: row,
-    });
-    console.log(`added user ${user.id}`);
-  }
+  const { count } = await prisma.user.createMany({
+    data: users,
+    skipDuplicates: true,
+  });
+  console.log(`created ${count} users`);
 })();
