@@ -31,5 +31,19 @@ export const registerEvents = () => {
     }
   });
 
+  app.event("user_profile_changed", async ({ event, client, logger }) => {
+    const { user } = event;
+    if (!user.is_bot) {
+      await prisma.user.update({
+        where: { slack_id: user.id },
+        data: {
+          real_name: user.real_name,
+          email: user.profile.email,
+        },
+      });
+      console.log(`updated user ${user.id}`);
+    }
+  });
+
   console.log("⚡️ Events registered!");
 };
