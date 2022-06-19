@@ -4,10 +4,10 @@
   "description": "",
   "scripts": {
     "dev": "concurrently 'cd next && npm run dev' 'cd slackbot && npm run dev'",
-    "build": "npm run build:slackbot",
+    "build": "prisma generate && npm run build:slackbot",
     "build:slackbot": "cd slackbot && npm run build",
     "migrate": "prisma migrate deploy",
-    "heroku-prebuild": "npm run install:slackbot && prisma generate",
+    "heroku-prebuild": "npm run install:slackbot",
     "install:dev": "npm install && npm run install:next && npm run install:slackbot",
     "install:next": "cd next && npm install",
     "install:slackbot": "cd slackbot && npm install",
