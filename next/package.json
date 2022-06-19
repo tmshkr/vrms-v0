@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "build": "prisma generate --data-proxy && next build",
+    "build:vercel": "prisma generate --data-proxy && next build",
     "start": "next start",
     "lint": "next lint"
   },
