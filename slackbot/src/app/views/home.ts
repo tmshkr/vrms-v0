@@ -44,13 +44,6 @@ const renderMeeting = (meeting) => {
 };
 
 export const getHomeTab = async (slack_id) => {
-  // create user if does not exist in db
-  await prisma.user.upsert({
-    where: { slack_id },
-    update: {},
-    create: { slack_id },
-  });
-
   const [quote] = await axios
     .get("https://zenquotes.io/api/today")
     .then((res) => res.data)
