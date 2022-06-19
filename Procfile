@@ -1,2 +1,2 @@
-release: npx prisma migrate deploy
+release: npm run migrate
 worker: npm run start:slackbot
