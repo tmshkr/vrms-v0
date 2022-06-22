@@ -48,46 +48,47 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
       break;
   }
 
-  const newMeeting = await prisma.meeting.create({
-    data: {
-      created_by: body.user.id,
-      duration: Number(meeting_duration.selected_option.value.split(" ")[0]),
-      project_id: Number(meeting_project.selected_option.value),
-      slack_channel_id: meeting_channel.selected_channel,
-      start_date: start_date.utc().format(),
-      title: meeting_title.value,
-      rrule: rule?.toString(),
-      participants: {
-        create: meeting_participants.selected_conversations.map((slack_id) => ({
-          slack_id,
-        })),
-      },
-    },
-  });
-
-  const agenda = await getAgenda();
-  await agenda.schedule(start_date.utc().format(), "sendMeetingCheckin", {
-    start_date: start_date.utc().format(),
-    meeting_id: newMeeting.id,
-    slack_channel_id: meeting_channel.selected_channel,
-    rrule: rule?.toString(),
-  });
-
-  for (const slack_id of meeting_participants.selected_conversations) {
-    await client.chat.postMessage({
-      channel: slack_id,
-      text: `<@${body.user.id}> invited you to a meeting!`,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `<@${body.user.id}> invited you to a meeting!`,
-          },
+  await prisma.$transaction(async (prisma) => {
+    const newMeeting = await prisma.meeting.create({
+      data: {
+        created_by: body.user.id,
+        duration: Number(meeting_duration.selected_option.value.split(" ")[0]),
+        project_id: Number(meeting_project.selected_option.value),
+        slack_channel_id: meeting_channel.selected_channel,
+        start_date: start_date.utc().format(),
+        title: meeting_title.value,
+        rrule: rule?.toString(),
+        participants: {
+          create: meeting_participants.selected_conversations.map(
+            (slack_id) => ({
+              slack_id,
+            })
+          ),
         },
-      ],
+      },
     });
-  }
+
+    const agenda = await getAgenda();
+    await agenda.schedule(start_date.utc().format(), "sendMeetingCheckin", {
+      meeting_id: newMeeting.id,
+    });
+
+    for (const slack_id of meeting_participants.selected_conversations) {
+      await client.chat.postMessage({
+        channel: slack_id,
+        text: `<@${body.user.id}> invited you to a meeting!`,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `<@${body.user.id}> invited you to a meeting!`,
+            },
+          },
+        ],
+      });
+    }
+  });
 
   const home = await getHomeTab(body.user.id);
   await client.views.publish(home);
