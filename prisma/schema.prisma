@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
 }
 
 datasource db {
@@ -29,9 +30,9 @@ model User {
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
-  email               String?
+  email               String
   meeting_assignments MeetingParticipant[]
-  real_name           String?
+  real_name           String
   team_assignments    TeamMember[]
 }
 
@@ -68,6 +69,9 @@ model Meeting {
   created_by_user  User                 @relation(fields: [created_by], references: [slack_id])
   duration         Int // in minutes
   is_active        Boolean              @default(true)
+  gcal_event_id    String?
+  gcal_event_link  String?
+  google_meet_link String?
   participants     MeetingParticipant[]
   project          Project              @relation(fields: [project_id], references: [id])
   project_id       Int
