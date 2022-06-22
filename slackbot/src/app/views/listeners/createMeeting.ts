@@ -5,6 +5,7 @@ import dayjs from "lib/dayjs";
 import { getAgenda } from "lib/agenda";
 import { getHomeTab } from "app/views/home";
 import { getInnerValues } from "utils/getInnerValues";
+import { createCalendarEvent } from "lib/google";
 
 export const createMeeting = async ({ ack, body, view, client, logger }) => {
   await ack();
@@ -63,15 +64,43 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
         })),
       },
     },
+    include: {
+      participants: {
+        include: { user: true },
+      },
+    },
   });
 
   const agenda = await getAgenda();
   await agenda.schedule(start_date.utc().format(), "sendMeetingCheckin", {
-    start_date: start_date.utc().format(),
+    // start_date: start_date.utc().format(),
     meeting_id: newMeeting.id,
-    slack_channel_id: meeting_channel.selected_channel,
-    rrule: rule?.toString(),
+    // slack_channel_id: meeting_channel.selected_channel,
+    // rrule: rule?.toString(),
   });
+
+  const gcalEvent = await createCalendarEvent({
+    summary: newMeeting.title,
+    description: "test meeting description",
+    start: {
+      dateTime: newMeeting.start_date,
+      timeZone: "America/Los_Angeles",
+    },
+    end: {
+      dateTime: dayjs(newMeeting.start_date).add(
+        newMeeting.duration,
+        "minutes"
+      ),
+      timeZone: "America/Los_Angeles",
+    },
+    conferenceData: {
+      createRequest: { requestId: Date.now() },
+    },
+    recurrence: [rule?.toString().split("\n")[1]],
+    attendees: newMeeting.participants?.map((p) => ({ email: p.user.email })),
+  });
+
+  console.log(gcalEvent);
 
   for (const slack_id of meeting_participants.selected_conversations) {
     await client.chat.postMessage({
