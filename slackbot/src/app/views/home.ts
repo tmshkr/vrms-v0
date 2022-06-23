@@ -18,19 +18,17 @@ const renderMeeting = (meeting) => {
     ? getNextOccurrence(meeting.rrule)
     : meeting.start_date;
 
-  const formatString = "YYYYMMDDTHHmmss[Z]";
-  const url = new URL("https://calendar.google.com/calendar/render");
-  url.searchParams.set("action", "TEMPLATE");
-  url.searchParams.set("text", meeting.title);
+  const url = new URL("https://www.google.com/calendar/event");
   url.searchParams.set(
-    "dates",
-    `${dayjs(nextMeeting).format(formatString)}/${dayjs(nextMeeting)
-      .add(meeting.duration, "minutes")
-      .format(formatString)}`
+    "eid",
+    Buffer.from(
+      `${meeting.gcal_event_id}_${dayjs(nextMeeting)
+        .utc()
+        .format("YYYYMMDDTHHmmss[Z]")} ${process.env.GOOGLE_CALENDAR_ID}`
+    )
+      .toString("base64")
+      .replace(/=/g, "")
   );
-  url.searchParams.set("details", "meeting details");
-  meeting.rrule && url.searchParams.set("recur", meeting.rrule.split("\n")[1]);
-  url.searchParams.set("ctz", "America/Los_Angeles");
 
   return {
     type: "section",
