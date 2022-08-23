@@ -82,6 +82,11 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
       },
       recurrence: [rule?.toString().split("\n")[1]],
       attendees: emails,
+      extendedProperties: {
+        private: {
+          vrms_project_id: Number(meeting_project.selected_option.value),
+        },
+      },
     });
 
     const newMeeting = await prisma.meeting.create({
