@@ -1,6 +1,6 @@
 import { app } from "app";
 
-export const sendMeetingCheckin = async (channel) => {
+export const sendMeetingCheckin = async (channel, joinUrl) => {
   await app.client.chat.postMessage({
     channel,
     text: `@here it's time to meet!`,
@@ -15,9 +15,10 @@ export const sendMeetingCheckin = async (channel) => {
           type: "button",
           text: {
             type: "plain_text",
-            text: "Check In",
+            text: "Join Meeting",
           },
           action_id: "meeting_check_in",
+          url: joinUrl,
         },
       },
     ],
