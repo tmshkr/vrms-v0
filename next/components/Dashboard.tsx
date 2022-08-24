@@ -2,6 +2,7 @@
 import { Fragment, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import axios from "axios";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { getPathRoot } from "utils/path";
@@ -30,8 +31,14 @@ export function Dashboard({ children }) {
   ];
 
   useEffect(() => {
-    if (status !== "loading") {
-      setUser(session?.user);
+    if (status === "authenticated") {
+      axios
+        .get("/api/roles")
+        .then(({ data }) =>
+          setUser({ ...session.user, app_roles: data.app_roles })
+        );
+    } else if (status === "unauthenticated") {
+      setUser(null);
     }
   }, [status]);
 
