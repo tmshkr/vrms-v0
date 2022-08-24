@@ -15,7 +15,7 @@ function classNames(...classes) {
 export function Dashboard({ children }) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const user = session?.user;
+  const [user, setUser] = useLocalStorage("user", session?.user);
   const pathRoot = getPathRoot(router.pathname);
   const navigation = [
     { name: "Dashboard", href: "/", current: pathRoot === "/" },
@@ -23,11 +23,11 @@ export function Dashboard({ children }) {
     { name: "Projects", href: "/projects", current: pathRoot === "/projects" },
   ];
 
-  console.log(status);
-
   useEffect(() => {
-    console.log({ user });
-  }, [user]);
+    if (status !== "loading") {
+      setUser(session?.user);
+    }
+  }, [status]);
 
   return (
     <>
