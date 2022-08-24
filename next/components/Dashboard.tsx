@@ -31,7 +31,6 @@ export function Dashboard({ children }) {
     { name: "Dashboard", href: "/", current: pathRoot === "/" },
     { name: "Meetings", href: "/meetings", current: pathRoot === "/meetings" },
     { name: "Projects", href: "/projects", current: pathRoot === "/projects" },
-    { name: "Calendar", href: "/calendar", current: pathRoot === "/calendar" },
   ];
 
   return (
@@ -64,7 +63,7 @@ export function Dashboard({ children }) {
                             item.current
                               ? "border-indigo-500 text-gray-900"
                               : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                            "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                            "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium no-underline"
                           )}
                           aria-current={item.current ? "page" : undefined}
                         >
