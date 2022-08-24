@@ -1,5 +1,6 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 
@@ -26,6 +27,7 @@ function classNames(...classes) {
 }
 
 export function Dashboard() {
+  const { data: session, status } = useSession();
   return (
     <>
       {/*
@@ -78,22 +80,41 @@ export function Dashboard() {
                       type="button"
                       className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
-                      <span className="sr-only">View notifications</span>
-                      <BellIcon className="h-6 w-6" aria-hidden="true" />
+                      {session && (
+                        <>
+                          <span className="sr-only">View notifications</span>
+                          <BellIcon className="h-6 w-6" aria-hidden="true" />
+                        </>
+                      )}
                     </button>
 
                     {/* Profile dropdown */}
                     <Menu as="div" className="ml-3 relative">
-                      <div>
-                        <Menu.Button className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                          <span className="sr-only">Open user menu</span>
-                          <img
-                            className="h-8 w-8 rounded-full"
-                            src={user.imageUrl}
-                            alt=""
-                          />
-                        </Menu.Button>
-                      </div>
+                      {session ? (
+                        <div>
+                          <Menu.Button className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <span className="sr-only">Open user menu</span>
+                            <img
+                              className="h-8 w-8 rounded-full"
+                              src={user.imageUrl}
+                              alt=""
+                            />
+                          </Menu.Button>
+                        </div>
+                      ) : (
+                        <a
+                          href={`/api/auth/signin`}
+                          className="text-white py-3 px-4 rounded-md"
+                          style={{ background: "var(--hackforla-red)" }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            signIn();
+                          }}
+                        >
+                          Sign in
+                        </a>
+                      )}
+
                       <Transition
                         as={Fragment}
                         enter="transition ease-out duration-200"
