@@ -48,69 +48,68 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
     default:
       break;
   }
-  await prisma.$transaction(async (prisma) => {
-    const participantSlackIds = meeting_participants.selected_conversations.map(
-      (slack_id) => ({
-        slack_id,
-      })
-    );
-    const emails = await prisma.user.findMany({
-      where: {
-        OR: participantSlackIds,
-      },
-      select: { email: true },
-    });
 
-    const gcalEvent = await createCalendarEvent({
-      summary: meeting_title.value,
-      description: "test meeting description",
-      start: {
-        dateTime: dayjs(start_date).utc(),
-        timeZone: "America/Los_Angeles",
-      },
-      end: {
-        dateTime: dayjs(start_date)
-          .utc()
-          .add(
-            Number(meeting_duration.selected_option.value.split(" ")[0]),
-            "minutes"
-          ),
-        timeZone: "America/Los_Angeles",
-      },
-      conferenceData: {
-        createRequest: { requestId: Date.now() },
-      },
-      recurrence: [rule?.toString().split("\n")[1]],
-      attendees: emails,
-      extendedProperties: {
-        private: {
-          vrms_project_id: Number(meeting_project.selected_option.value),
-        },
-      },
-    });
+  const participantSlackIds = meeting_participants.selected_conversations.map(
+    (slack_id) => ({
+      slack_id,
+    })
+  );
+  const emails = await prisma.user.findMany({
+    where: {
+      OR: participantSlackIds,
+    },
+    select: { email: true },
+  });
 
-    const newMeeting = await prisma.meeting.create({
-      data: {
-        created_by: body.user.id,
-        duration: Number(meeting_duration.selected_option.value.split(" ")[0]),
-        gcal_event_id: gcalEvent.id,
-        gcal_event_link: gcalEvent.htmlLink,
-        google_meet_link: gcalEvent.hangoutLink,
-        project_id: Number(meeting_project.selected_option.value),
-        slack_channel_id: meeting_channel.selected_channel,
-        start_date: start_date.utc().format(),
-        title: meeting_title.value,
-        rrule: rule?.toString(),
-        participants: {
-          create: participantSlackIds,
-        },
+  const gcalEvent = await createCalendarEvent({
+    summary: meeting_title.value,
+    description: "test meeting description",
+    start: {
+      dateTime: dayjs(start_date).utc(),
+      timeZone: "America/Los_Angeles",
+    },
+    end: {
+      dateTime: dayjs(start_date)
+        .utc()
+        .add(
+          Number(meeting_duration.selected_option.value.split(" ")[0]),
+          "minutes"
+        ),
+      timeZone: "America/Los_Angeles",
+    },
+    conferenceData: {
+      createRequest: { requestId: Date.now() },
+    },
+    recurrence: [rule?.toString().split("\n")[1]],
+    attendees: emails,
+    extendedProperties: {
+      private: {
+        vrms_project_id: Number(meeting_project.selected_option.value),
       },
-    });
+    },
+  });
 
-    const agenda = await getAgenda();
-    await agenda.schedule(start_date.utc().format(), "sendMeetingCheckin", {
-      meeting_id: newMeeting.id,
-    });
+  const newMeeting = await prisma.meeting.create({
+    data: {
+      created_by: body.user.id,
+      duration: Number(meeting_duration.selected_option.value.split(" ")[0]),
+      gcal_event_id: gcalEvent.id,
+      gcal_event_link: gcalEvent.htmlLink,
+      google_meet_link: gcalEvent.hangoutLink,
+      project_id: Number(meeting_project.selected_option.value),
+      slack_channel_id: meeting_channel.selected_channel,
+      start_date: start_date.utc().format(),
+      title: meeting_title.value,
+      rrule: rule?.toString(),
+      participants: {
+        create: participantSlackIds,
+      },
+    },
+  });
+
+  const agenda = await getAgenda();
+  await agenda.schedule(start_date.utc().format(), "sendMeetingCheckin", {
+    meeting_id: newMeeting.id,
   });
 
   for (const slack_id of meeting_participants.selected_conversations) {
