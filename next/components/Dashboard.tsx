@@ -101,7 +101,7 @@ export function Dashboard({ children }) {
                       ) : (
                         <a
                           href={`/api/auth/signin`}
-                          className="text-white py-3 px-4 rounded-md"
+                          className="text-white py-3 px-4 rounded-md no-underline"
                           style={{ background: "var(--hackforla-red)" }}
                           onClick={(e) => {
                             e.preventDefault();
