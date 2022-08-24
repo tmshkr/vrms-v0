@@ -1,6 +1,6 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment, useEffect } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
@@ -164,14 +164,14 @@ export function Dashboard({ children }) {
                   <div className="mt-3 space-y-1">
                     <Disclosure.Button
                       as="a"
-                      href={`/api/auth/signout`}
+                      href={user ? `/api/auth/signout` : `/api/auth/signin`}
                       className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                       onClick={(e) => {
                         e.preventDefault();
-                        signOut();
+                        user ? signOut() : signIn();
                       }}
                     >
-                      Sign out
+                      {user ? "Sign out" : "Sign in"}
                     </Disclosure.Button>
                   </div>
                 </div>
