@@ -1,12 +1,18 @@
 /* This example requires Tailwind CSS v2.0+ */
 import { Fragment, useEffect } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
-import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
+import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { getPathRoot } from "utils/path";
 import { useLocalStorage } from "hooks/useLocalStorage";
 import Logo from "assets/logo-hfla.svg";
+
+import dynamic from "next/dynamic";
+
+const SignInButton = dynamic(() => import("./SignInButton"), {
+  ssr: false,
+});
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -60,45 +66,9 @@ export function Dashboard({ children }) {
                     </div>
                   </div>
                   <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                    <button
-                      type="button"
-                      className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      {session && (
-                        <>
-                          <span className="sr-only">View notifications</span>
-                          <BellIcon className="h-6 w-6" aria-hidden="true" />
-                        </>
-                      )}
-                    </button>
-
                     {/* Profile dropdown */}
                     <Menu as="div" className="ml-3 relative">
-                      {session ? (
-                        <div>
-                          <Menu.Button className="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <span className="sr-only">Open user menu</span>
-                            <img
-                              className="h-8 w-8 rounded-full"
-                              src={user?.image || undefined}
-                              alt=""
-                            />
-                          </Menu.Button>
-                        </div>
-                      ) : (
-                        <a
-                          href={`/api/auth/signin`}
-                          className="text-white py-3 px-4 rounded-md no-underline"
-                          style={{ background: "var(--hackforla-red)" }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            signIn();
-                          }}
-                        >
-                          Sign in
-                        </a>
-                      )}
-
+                      <SignInButton user={user} />
                       <Transition
                         as={Fragment}
                         enter="transition ease-out duration-200"
@@ -184,13 +154,6 @@ export function Dashboard({ children }) {
                         </div>
                       </>
                     )}
-                    <button
-                      type="button"
-                      className="ml-auto bg-white flex-shrink-0 p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    >
-                      <span className="sr-only">View notifications</span>
-                      <BellIcon className="h-6 w-6" aria-hidden="true" />
-                    </button>
                   </div>
                   <div className="mt-3 space-y-1">
                     <Disclosure.Button
