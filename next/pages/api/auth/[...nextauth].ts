@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import SlackProvider from "next-auth/providers/slack";
+import prisma from "lib/prisma";
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -24,6 +25,13 @@ export default NextAuth({
     },
     async session({ session, token }: { session: any; token: any }) {
       if (session) {
+        const app_roles = await prisma.appRoleOnUser.findMany({
+          where: {
+            slack_id: token.sub,
+          },
+          select: { role: true },
+        });
+        session.user.app_roles = app_roles.map(({ role }) => role);
         session.user.slack_id = token.sub;
       }
       return session;
