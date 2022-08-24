@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import prisma from "lib/prisma";
 import Head from "next/head";
+import Link from "next/link";
 
 const Meetings: NextPage = (props: any) => {
   const { meetings } = props;
@@ -13,8 +14,10 @@ const Meetings: NextPage = (props: any) => {
       </Head>
       <h1>meetings</h1>
       <ol>
-        {meetings.map((project) => (
-          <li key={project.id}>{project.title}</li>
+        {meetings.map(({ id, title }) => (
+          <li key={id}>
+            <Link href={`/meetings/${id}`}>{title}</Link>
+          </li>
         ))}
       </ol>
     </>
