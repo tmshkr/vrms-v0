@@ -2,16 +2,19 @@
   "name": "vrms",
   "version": "1.0.0",
   "description": "",
+  "workspaces": [
+    "slackbot",
+    "next"
+  ],
   "scripts": {
-    "dev": "concurrently 'cd next && npm run dev' 'cd slackbot && npm run dev'",
+    "dev": "concurrently 'npm run dev:next' 'npm run dev:slackbot'",
+    "dev:next": "npm run dev --workspace=next",
+    "dev:slackbot": "npm run dev --workspace=slackbot",
     "build": "prisma generate && npm run build:slackbot",
-    "build:slackbot": "cd slackbot && npm run build",
+    "build:slackbot": "npm run build --workspace=slackbot",
+    "build:vercel": "npm run build:vercel --workspace=next",
     "migrate": "prisma migrate deploy",
-    "heroku-prebuild": "npm run install:slackbot",
-    "install:dev": "npm install && npm run install:next && npm run install:slackbot",
-    "install:next": "cd next && npm install",
-    "install:slackbot": "cd slackbot && npm install",
-    "start:slackbot": "cd slackbot && npm run start",
+    "start:slackbot": "npm run start --workspace=slackbot",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -34,11 +37,11 @@
     "eslint": "8.16.0",
     "eslint-config-next": "12.1.6",
     "nodemon": "^2.0.15",
-    "prisma": "3.15.1",
+    "prisma": "^3.15.1",
     "typescript": "^4.6.2"
   },
   "dependencies": {
-    "@prisma/client": "3.15.1",
+    "@prisma/client": "^3.15.1",
     "@slack/bolt": "^3.10.0",
     "axios": "^0.27.2",
     "googleapis": "^104.0.0",
