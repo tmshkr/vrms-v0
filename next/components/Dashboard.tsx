@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 import { getPathRoot } from "utils/path";
+import Logo from "assets/logo-hfla.svg";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -31,16 +32,7 @@ export function Dashboard({ children }) {
                 <div className="flex justify-between h-16">
                   <div className="flex">
                     <div className="flex-shrink-0 flex items-center">
-                      <img
-                        className="block lg:hidden h-8 w-auto"
-                        src="https://tailwindui.com/img/logos/workflow-mark.svg?color=indigo&shade=600"
-                        alt="Workflow"
-                      />
-                      <img
-                        className="hidden lg:block h-8 w-auto"
-                        src="https://tailwindui.com/img/logos/workflow-mark.svg?color=indigo&shade=600"
-                        alt="Workflow"
-                      />
+                      <Logo className="w-12" />
                     </div>
                     <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                       {navigation.map((item) => (
