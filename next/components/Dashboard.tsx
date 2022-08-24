@@ -2,7 +2,7 @@
 import { Fragment, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import axios from "axios";
+import Link from "next/link";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import { getPathRoot } from "utils/path";
@@ -32,11 +32,7 @@ export function Dashboard({ children }) {
 
   useEffect(() => {
     if (status === "authenticated") {
-      axios
-        .get("/api/roles")
-        .then(({ data }) =>
-          setUser({ ...session.user, app_roles: data.app_roles })
-        );
+      setUser(session.user);
     } else if (status === "unauthenticated") {
       setUser(null);
     }
@@ -56,19 +52,19 @@ export function Dashboard({ children }) {
                     </div>
                     <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                       {navigation.map((item) => (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? "border-indigo-500 text-gray-900"
-                              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                            "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium no-underline"
-                          )}
-                          aria-current={item.current ? "page" : undefined}
-                        >
-                          {item.name}
-                        </a>
+                        <Link key={item.name} href={item.href} passHref>
+                          <a
+                            className={classNames(
+                              item.current
+                                ? "border-indigo-500 text-gray-900"
+                                : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                              "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium no-underline"
+                            )}
+                            aria-current={item.current ? "page" : undefined}
+                          >
+                            {item.name}
+                          </a>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -87,18 +83,19 @@ export function Dashboard({ children }) {
                       >
                         <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                           <Menu.Item>
-                            <a
-                              href={`/api/auth/signout`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                signOut();
-                              }}
-                              className={
-                                "block px-4 py-2 text-sm text-gray-700"
-                              }
-                            >
-                              Sign out
-                            </a>
+                            <Link href={`/api/auth/signout`} passHref>
+                              <a
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  signOut();
+                                }}
+                                className={
+                                  "block px-4 py-2 text-sm text-gray-700"
+                                }
+                              >
+                                Sign out
+                              </a>
+                            </Link>
                           </Menu.Item>
                         </Menu.Items>
                       </Transition>
@@ -124,20 +121,22 @@ export function Dashboard({ children }) {
               <Disclosure.Panel className="sm:hidden">
                 <div className="pt-2 pb-3 space-y-1">
                   {navigation.map((item) => (
-                    <Disclosure.Button
-                      key={item.name}
-                      as="a"
-                      href={item.href}
-                      className={classNames(
-                        item.current
-                          ? "bg-indigo-50 border-indigo-500 text-indigo-700"
-                          : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
-                        "block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-                      )}
-                      aria-current={item.current ? "page" : undefined}
-                    >
-                      {item.name}
-                    </Disclosure.Button>
+                    <Link key={item.name} href={item.href} passHref>
+                      <Disclosure.Button
+                        key={item.name}
+                        as="a"
+                        href={item.href}
+                        className={classNames(
+                          item.current
+                            ? "bg-indigo-50 border-indigo-500 text-indigo-700"
+                            : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
+                          "block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
+                        )}
+                        aria-current={item.current ? "page" : undefined}
+                      >
+                        {item.name}
+                      </Disclosure.Button>
+                    </Link>
                   ))}
                 </div>
                 <div className="pt-4 pb-3 border-t border-gray-200">
