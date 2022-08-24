@@ -16,6 +16,10 @@ A Slack app to help volunteers create, manage, and view projects and meetings.
 - [TypeScript](https://www.typescriptlang.org/)
 - [Vercel](https://vercel.com/)
 
+## Database Schema
+
+![schema](/prisma/ERD.svg)
+
 ## API Endpoints
 
 The following API endpoints are publicly available:
