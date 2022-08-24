@@ -24,7 +24,7 @@ install the dependencies with the following command:
 
 ```
 git clone https://github.com/YOUR_USERNAME/vrms.git --recurse-submodules
-cd vrms && npm run install:dev
+cd vrms && npm install
 ```
 
 ### Create your `.env` file
@@ -101,6 +101,10 @@ Copy and paste the token starting with `xapp` as the `SLACK_APP_TOKEN` in your `
 
 To get the `SLACK_BOT_TOKEN`, click **OAuth & Permissions** from the sidebar under the **Features** heading.
 On that page, you'll find the **Bot User OAuth Token** starting with `xoxb`.
+
+### Google Calendar integration
+
+The app automatically creates a Google Calendar event for new meetings using the [Calendar API](https://developers.google.com/calendar/api). To get the necessary environment variables, follow the instructions in the [Node.js quickstart](https://developers.google.com/calendar/api/quickstart/nodejs).
 
 ### Migrate and seed the database
 
