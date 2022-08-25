@@ -35,7 +35,11 @@ export function Dashboard({ children }) {
 
   useEffect(() => {
     if (status === "authenticated") {
-      setUser(session.user);
+      const user: any = session.user;
+      setUser(user);
+      if (!user.onboarding_complete) {
+        router.push("/onboard");
+      }
     } else if (status === "unauthenticated") {
       setUser(null);
     }
