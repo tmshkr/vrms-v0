@@ -62,7 +62,9 @@ export function Dashboard({ children }) {
                   <div className="flex justify-between h-16">
                     <div className="flex">
                       <div className="flex-shrink-0 flex items-center">
-                        <Logo className="w-12" />
+                        <Link href="/">
+                          <Logo className="w-12 cursor-pointer" />
+                        </Link>
                       </div>
                       <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                         {navigation.map((item) => (
