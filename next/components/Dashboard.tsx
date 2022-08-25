@@ -63,7 +63,9 @@ export function Dashboard({ children }) {
                     <div className="flex">
                       <div className="flex-shrink-0 flex items-center">
                         <Link href="/">
-                          <Logo className="w-12 cursor-pointer" />
+                          <a className="hover:bg-transparent">
+                            <Logo className="w-12 cursor-pointer" />
+                          </a>
                         </Link>
                       </div>
                       <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
@@ -74,7 +76,7 @@ export function Dashboard({ children }) {
                                 item.current
                                   ? "border-indigo-500 text-gray-900"
                                   : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                                "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium no-underline"
+                                "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium no-underline hover:bg-transparent"
                               )}
                               aria-current={item.current ? "page" : undefined}
                             >
