@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Cookies from "cookies";
 import { getToken } from "next-auth/jwt";
 import { getMongoClient } from "~/lib/mongo";
+import { notifyAccountConnected } from "lib/slack";
 
 export default async function handler(req, res) {
   const nextToken = await getToken({ req });
@@ -36,17 +37,25 @@ export default async function handler(req, res) {
   });
 
   if (connectedAccount) {
-    res.send("That account is already connected");
+    console.log("Slack account already connected", {
+      slack_id,
+      provider,
+      providerAccountId,
+    });
+    res.redirect("/");
     return;
   }
 
-  await accounts.updateOne(
+  const result = await accounts.findOneAndUpdate(
     {
       provider,
       providerAccountId,
     },
-    { $set: { slack_id } }
+    { $set: { slack_id } },
+    { returnDocument: "after" }
   );
 
-  res.status(200).send(`Connected Slack account`);
+  console.log(`Connected Slack account`);
+  notifyAccountConnected(slack_id, result.value.gh_username);
+  res.redirect("/");
 }
