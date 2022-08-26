@@ -21,26 +21,6 @@ export default NextAuth({
     async signIn(args) {
       // console.log("signIn", args);
       const { account, user, profile } = args;
-      const { provider, providerAccountId } = account;
-      const { login, two_factor_authentication } = profile;
-
-      const mongoClient = await getMongoClient();
-      await mongoClient
-        .db()
-        .collection("accounts")
-        .updateOne(
-          { provider, providerAccountId },
-          {
-            $set: {
-              ...user,
-              ...account,
-              gh_username: login,
-              two_factor_authentication,
-            },
-          },
-          { upsert: true }
-        );
-
       return true;
     },
     async redirect({ url, baseUrl }) {
@@ -49,16 +29,55 @@ export default NextAuth({
     async session(args) {
       // console.log("session", args);
       const { session, token, user } = args;
+
+      session.user.slack_id = token.slack_id;
+      session.user.gh_username = token.gh_username;
+
       return session;
     },
     async jwt(args) {
       // console.log("jwt", args);
       const { token, user, account, profile } = args;
 
-      if (account) {
+      // account and profile are available during sign in
+      if (account && profile) {
         const { provider, providerAccountId } = account;
+        const { login, two_factor_authentication } = profile;
+
         token.provider = provider;
         token.providerAccountId = providerAccountId;
+        token.gh_username = login;
+
+        const mongoClient = await getMongoClient();
+        const doc = await mongoClient
+          .db()
+          .collection("accounts")
+          .findOneAndUpdate(
+            { provider, providerAccountId },
+            {
+              $set: {
+                ...user,
+                ...account,
+                gh_username: login,
+                two_factor_authentication,
+              },
+            },
+            { upsert: true, returnDocument: "after" }
+          );
+
+        // slack_id will not be available until the user connects account
+        token.slack_id = doc.value.slack_id;
+      } else if (!token.slack_id) {
+        const { provider, providerAccountId } = token;
+        const mongoClient = await getMongoClient();
+        const doc = await mongoClient
+          .db()
+          .collection("accounts")
+          .findOne({ provider, providerAccountId });
+
+        if (doc.slack_id) {
+          token.slack_id = doc.slack_id;
+        }
       }
 
       return token;
