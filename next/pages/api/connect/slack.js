@@ -15,8 +15,6 @@ export default async function handler(req, res) {
     });
     res.redirect("/api/auth/signin");
     return;
-  } else if (cookies.get("redirect_to")) {
-    cookies.set("redirect_to");
   }
 
   const { provider, providerAccountId } = nextToken;
@@ -38,7 +36,7 @@ export default async function handler(req, res) {
   });
 
   if (connectedAccount) {
-    res.redirect("/");
+    res.send("That account is already connected");
     return;
   }
 
