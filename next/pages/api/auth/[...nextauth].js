@@ -25,7 +25,10 @@ export default NextAuth({
         .db()
         .collection("accounts")
         .updateOne(
-          { providerAccountId: account.providerAccountId },
+          {
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+          },
           { $set: { ...user, ...account } },
           { upsert: true }
         );
