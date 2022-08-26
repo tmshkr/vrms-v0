@@ -76,17 +76,10 @@ export const getHomeTab = async (slack_id) => {
     });
 
   const mongoClient = await getMongoClient();
-  const account = await mongoClient
+  const connectedAccount = await mongoClient
     .db()
     .collection("accounts")
     .findOne({ slack_id });
-
-  const dashboardURL = account
-    ? process.env.NEXTAUTH_URL
-    : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
-        { slack_id },
-        process.env.NEXTAUTH_SECRET
-      )}`;
 
   return {
     user_id: slack_id,
@@ -111,10 +104,15 @@ export const getHomeTab = async (slack_id) => {
             type: "button",
             text: {
               type: "plain_text",
-              text: "Open Dashboard",
+              text: connectedAccount ? "Open Dashboard" : "Connect Account",
               emoji: true,
             },
-            url: dashboardURL,
+            url: connectedAccount
+              ? process.env.NEXTAUTH_URL
+              : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
+                  { slack_id },
+                  process.env.NEXTAUTH_SECRET
+                )}`,
             action_id: "open_dashboard",
             style: "primary",
           },
