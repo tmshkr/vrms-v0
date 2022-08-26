@@ -19,6 +19,7 @@ export default NextAuth({
   },
   callbacks: {
     async signIn(args) {
+      // console.log("signIn", args);
       const { account, user } = args;
       const mongoClient = await getMongoClient();
       await mongoClient
@@ -39,11 +40,20 @@ export default NextAuth({
       return baseUrl;
     },
     async session(args) {
+      // console.log("session", args);
       const { session, token, user } = args;
       return session;
     },
     async jwt(args) {
-      return args.token;
+      // console.log("jwt", args);
+      const { token, user, account, profile } = args;
+      if (account) {
+        return {
+          ...token,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+        };
+      } else return token;
     },
   },
 });
