@@ -19,6 +19,17 @@ export default NextAuth({
   },
   callbacks: {
     async signIn(args) {
+      const { account, user } = args;
+      const mongoClient = await getMongoClient();
+      await mongoClient
+        .db()
+        .collection("accounts")
+        .updateOne(
+          { providerAccountId: account.providerAccountId },
+          { $set: { ...user, ...account } },
+          { upsert: true }
+        );
+
       return true;
     },
     async redirect({ url, baseUrl }) {
