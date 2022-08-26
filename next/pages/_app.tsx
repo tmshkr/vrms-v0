@@ -13,6 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
     if (redirect_to) {
       Cookies.remove("redirect_to");
       window.location.replace(redirect_to);
+      return null;
     }
   }
 
