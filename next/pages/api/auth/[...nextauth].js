@@ -20,17 +20,24 @@ export default NextAuth({
   callbacks: {
     async signIn(args) {
       // console.log("signIn", args);
-      const { account, user } = args;
+      const { account, user, profile } = args;
+      const { provider, providerAccountId } = account;
+      const { login, two_factor_authentication } = profile;
+
       const mongoClient = await getMongoClient();
       await mongoClient
         .db()
         .collection("accounts")
         .updateOne(
+          { provider, providerAccountId },
           {
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
+            $set: {
+              ...user,
+              ...account,
+              gh_username: login,
+              two_factor_authentication,
+            },
           },
-          { $set: { ...user, ...account } },
           { upsert: true }
         );
 
@@ -47,13 +54,14 @@ export default NextAuth({
     async jwt(args) {
       // console.log("jwt", args);
       const { token, user, account, profile } = args;
+
       if (account) {
-        return {
-          ...token,
-          provider: account.provider,
-          providerAccountId: account.providerAccountId,
-        };
-      } else return token;
+        const { provider, providerAccountId } = account;
+        token.provider = provider;
+        token.providerAccountId = providerAccountId;
+      }
+
+      return token;
     },
   },
 });
