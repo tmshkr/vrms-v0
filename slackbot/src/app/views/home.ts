@@ -1,7 +1,9 @@
 import prisma from "lib/prisma";
+import { getMongoClient } from "lib/mongo";
 import dayjs from "lib/dayjs";
 import { getNextOccurrence } from "lib/rrule";
 import axios from "axios";
+const jwt = require("jsonwebtoken");
 
 const renderProject = (project) => {
   return {
@@ -73,6 +75,19 @@ export const getHomeTab = async (slack_id) => {
       return userOverview;
     });
 
+  const mongoClient = await getMongoClient();
+  const account = await mongoClient
+    .db()
+    .collection("accounts")
+    .findOne({ slack_id });
+
+  const dashboardURL = account
+    ? process.env.NEXTAUTH_URL
+    : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
+        { slack_id },
+        process.env.NEXTAUTH_SECRET
+      )}`;
+
   return {
     user_id: slack_id,
     view: {
@@ -99,7 +114,7 @@ export const getHomeTab = async (slack_id) => {
               text: "Open Dashboard",
               emoji: true,
             },
-            url: process.env.NEXTAUTH_URL,
+            url: dashboardURL,
             action_id: "open_dashboard",
             style: "primary",
           },
