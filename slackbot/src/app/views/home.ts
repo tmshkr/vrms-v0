@@ -60,7 +60,7 @@ export const getHomeTab = async (slack_id) => {
             url: accounts.length
               ? process.env.NEXTAUTH_URL
               : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
-                  { vrms_user_id },
+                  { vrms_user_id, slack_id },
                   process.env.NEXTAUTH_SECRET
                 )}`,
             action_id: "open_dashboard",
