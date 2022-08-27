@@ -46,13 +46,13 @@ model Account {
   token_type                String?
   type                      String
   two_factor_authentication Boolean?
-  user_id                   Int
+  vrms_user_id              Int
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
   expires_at Int?
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [vrms_user_id], references: [id], onDelete: Cascade)
 
   @@id([provider, provider_account_id])
 }
