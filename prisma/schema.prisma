@@ -29,9 +29,31 @@ model AppRoleOnUser {
   @@id([user_id, role])
 }
 
+model Account {
+  id                  String   @id @default(cuid())
+  user_id             Int
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?  @db.Text
+  access_token        String?  @db.Text
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?  @db.Text
+  session_state       String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_account_id])
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
   slack_id            String               @unique
+  accounts            Account[]
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
@@ -50,8 +72,8 @@ model User {
 model Project {
   id              Int          @id @default(autoincrement())
   is_active       Boolean      @default(true)
-  created_by      Int
-  created_by_user User         @relation(fields: [created_by], references: [id])
+  created_by_id   Int
+  created_by_user User         @relation(fields: [created_by_id], references: [id])
   meetings        Meeting[]
   name            String
   team_members    TeamMember[]
@@ -65,14 +87,14 @@ enum ProjectRole {
 }
 
 model TeamMember {
+  added_by_id   Int
+  added_by_user User        @relation(name: "AddMember", fields: [added_by_id], references: [id])
   is_active     Boolean     @default(true)
   project       Project     @relation(fields: [project_id], references: [id])
   project_id    Int
   role          ProjectRole @default(MEMBER)
+  user          User        @relation(fields: [user_id], references: [id])
   user_id       Int
-  member        User        @relation(fields: [user_id], references: [id])
-  added_by      Int
-  added_by_user User        @relation(name: "AddMember", fields: [added_by], references: [id])
   created_at    DateTime    @default(now())
   updated_at    DateTime    @default(now())
 
@@ -81,8 +103,8 @@ model TeamMember {
 
 model Meeting {
   id               Int                  @id @default(autoincrement())
-  created_by       Int
-  created_by_user  User                 @relation(fields: [created_by], references: [id])
+  created_by_id    Int
+  created_by_user  User                 @relation(fields: [created_by_id], references: [id])
   duration         Int // in minutes
   is_active        Boolean              @default(true)
   gcal_event_id    String
@@ -105,8 +127,8 @@ model MeetingParticipant {
   meeting_id    Int
   user_id       Int
   participant   User     @relation(fields: [user_id], references: [id])
-  added_by      Int
-  added_by_user User     @relation(name: "AddParticipant", fields: [added_by], references: [id])
+  added_by_id   Int
+  added_by_user User     @relation(name: "AddParticipant", fields: [added_by_id], references: [id])
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now())
 
