@@ -35,14 +35,18 @@ model Account {
   provider            String
   provider_account_id String
 
-  access_token  String? @db.Text
-  id_token      String? @db.Text
-  refresh_token String? @db.Text
-  scope         String?
-  session_state String?
-  token_type    String?
-  type          String
-  user_id       Int
+  access_token              String?  @db.Text
+  email                     String
+  gh_username               String?
+  id_token                  String?  @db.Text
+  name                      String
+  refresh_token             String?  @db.Text
+  scope                     String?
+  session_state             String?
+  token_type                String?
+  type                      String
+  two_factor_authentication Boolean?
+  user_id                   Int
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
