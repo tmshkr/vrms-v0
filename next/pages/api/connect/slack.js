@@ -60,12 +60,20 @@ export default async function handler(req, res) {
         token_type,
         type,
         two_factor_authentication,
-        user_id: vrms_user_id,
+        vrms_user_id,
       },
     });
 
-    res.send("Account connected");
+    console.log("Account connected", {
+      vrms_user_id,
+      slack_id,
+      provider,
+      provider_account_id,
+      gh_username,
+    });
+
     notifyAccountConnected(slack_id, gh_username);
+    res.redirect("/");
   } catch (err) {
     if (err.code === "P2002") {
       res.send("It looks like this account is already connected");
