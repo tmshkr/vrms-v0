@@ -36,7 +36,10 @@ model User {
   email               String
   meeting_assignments MeetingParticipant[]
   real_name           String
+  gh_account_id       Int?                 @unique
   team_assignments    TeamMember[]
+
+  @@index([gh_account_id])
 }
 
 model Project {
