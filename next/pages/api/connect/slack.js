@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import Cookies from "cookies";
 import { getToken } from "next-auth/jwt";
-import { getMongoClient } from "~/lib/mongo";
+import prisma from "lib/prisma";
 import { notifyAccountConnected } from "lib/slack";
 
 export default async function handler(req, res) {
@@ -18,7 +18,12 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { provider, providerAccountId } = nextToken;
+  const { provider, providerAccountId, gh_username } = nextToken;
+
+  if (provider !== "github") {
+    res.status(501).send("Provider not implemented");
+    return;
+  }
 
   try {
     var { slack_id } = jwt.verify(req.query.token, process.env.NEXTAUTH_SECRET);
@@ -28,34 +33,30 @@ export default async function handler(req, res) {
     return;
   }
 
-  const accounts = await getMongoClient().then((client) =>
-    client.db().collection("accounts")
-  );
-
-  const connectedAccount = await accounts.findOne({
-    slack_id,
-  });
-
-  if (connectedAccount) {
-    console.log("Slack account already connected", {
-      slack_id,
-      provider,
-      providerAccountId,
+  try {
+    var { count } = await prisma.user.updateMany({
+      where: { AND: [{ slack_id }, { gh_account_id: null }] },
+      data: {
+        gh_account_id: Number(providerAccountId),
+      },
     });
-    res.redirect("/");
-    return;
+  } catch (err) {
+    console.error(err);
   }
 
-  const result = await accounts.findOneAndUpdate(
-    {
+  if (count === 1) {
+    console.log(`Connected Slack account`, slack_id);
+    notifyAccountConnected(slack_id, gh_username);
+    res.redirect("/");
+  } else if (count === 0) {
+    res.send("It looks like your account is already connected");
+  } else {
+    console.error("There was a problem updating the Slack connection", {
       provider,
       providerAccountId,
-    },
-    { $set: { slack_id } },
-    { returnDocument: "after" }
-  );
-
-  console.log(`Connected Slack account`);
-  notifyAccountConnected(slack_id, result.value.gh_username);
-  res.redirect("/");
+      gh_username,
+      slack_id,
+    });
+    res.status(500).send("Server error");
+  }
 }

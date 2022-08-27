@@ -1,5 +1,4 @@
 import prisma from "lib/prisma";
-import { getMongoClient } from "lib/mongo";
 import dayjs from "lib/dayjs";
 import { getNextOccurrence } from "lib/rrule";
 import axios from "axios";
@@ -49,8 +48,8 @@ export const getHomeTab = async (slack_id) => {
     .then((res) => res.data)
     .catch(console.error);
 
-  const userOverview = await prisma.user
-    .findUnique({
+  const { team_assignments, meeting_assignments, gh_account_id } =
+    await prisma.user.findUnique({
       where: { slack_id },
       include: {
         team_assignments: {
@@ -63,23 +62,7 @@ export const getHomeTab = async (slack_id) => {
           },
         },
       },
-    })
-    .then((user) => {
-      const userOverview = {} as any;
-      userOverview.projects = user.team_assignments?.map(({ project }) =>
-        renderProject(project)
-      );
-      userOverview.meetings = user.meeting_assignments?.map(({ meeting }) =>
-        renderMeeting(meeting)
-      );
-      return userOverview;
     });
-
-  const mongoClient = await getMongoClient();
-  const connectedAccount = await mongoClient
-    .db()
-    .collection("accounts")
-    .findOne({ slack_id });
 
   return {
     user_id: slack_id,
@@ -104,10 +87,10 @@ export const getHomeTab = async (slack_id) => {
             type: "button",
             text: {
               type: "plain_text",
-              text: connectedAccount ? "Open Dashboard" : "Connect Account",
+              text: gh_account_id ? "Open Dashboard" : "Connect Account",
               emoji: true,
             },
-            url: connectedAccount
+            url: gh_account_id
               ? process.env.NEXTAUTH_URL
               : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
                   { slack_id },
@@ -145,7 +128,7 @@ export const getHomeTab = async (slack_id) => {
             action_id: "create_new_project",
           },
         },
-        ...userOverview.projects,
+        ...team_assignments?.map(({ project }) => renderProject(project)),
         {
           type: "divider",
         },
@@ -174,7 +157,7 @@ export const getHomeTab = async (slack_id) => {
             action_id: "create_new_meeting",
           },
         },
-        ...userOverview.meetings,
+        ...meeting_assignments?.map(({ meeting }) => renderMeeting(meeting)),
         {
           type: "divider",
         },

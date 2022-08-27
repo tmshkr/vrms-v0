@@ -19,8 +19,6 @@ export default NextAuth({
   },
   callbacks: {
     async signIn(args) {
-      // console.log("signIn", args);
-      const { account, user, profile } = args;
       return true;
     },
     async redirect({ url, baseUrl }) {
@@ -29,10 +27,7 @@ export default NextAuth({
     async session(args) {
       // console.log("session", args);
       const { session, token, user } = args;
-
-      session.user.slack_id = token.slack_id;
       session.user.gh_username = token.gh_username;
-
       return session;
     },
     async jwt(args) {
@@ -47,12 +42,13 @@ export default NextAuth({
         token.provider = provider;
         token.providerAccountId = providerAccountId;
         token.gh_username = login;
+        token.two_factor_authentication = two_factor_authentication;
 
         const mongoClient = await getMongoClient();
-        const doc = await mongoClient
+        await mongoClient
           .db()
           .collection("accounts")
-          .findOneAndUpdate(
+          .updateOne(
             { provider, providerAccountId },
             {
               $set: {
@@ -62,22 +58,8 @@ export default NextAuth({
                 two_factor_authentication,
               },
             },
-            { upsert: true, returnDocument: "after" }
+            { upsert: true }
           );
-
-        // slack_id will not be available until the user connects account
-        token.slack_id = doc.value.slack_id;
-      } else if (!token.slack_id) {
-        const { provider, providerAccountId } = token;
-        const mongoClient = await getMongoClient();
-        const doc = await mongoClient
-          .db()
-          .collection("accounts")
-          .findOne({ provider, providerAccountId });
-
-        if (doc.slack_id) {
-          token.slack_id = doc.slack_id;
-        }
       }
 
       return token;
