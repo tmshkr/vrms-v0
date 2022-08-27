@@ -10,7 +10,6 @@ import { createCalendarEvent } from "lib/google";
 export const createMeeting = async ({ ack, body, view, client, logger }) => {
   await ack();
   const values = getInnerValues(view.state.values);
-  console.log(values);
   const {
     meeting_title,
     meeting_project,
@@ -49,17 +48,17 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
       break;
   }
 
-  const participantSlackIds = meeting_participants.selected_conversations.map(
-    (slack_id) => ({
-      slack_id,
-    })
-  );
-  const emails = await prisma.user.findMany({
+  const participants = await prisma.user.findMany({
     where: {
-      OR: participantSlackIds,
+      slack_id: {
+        in: meeting_participants.selected_conversations,
+      },
     },
-    select: { email: true },
+    select: { id: true, email: true, slack_id: true },
   });
+  const meetingCreator = participants.find(
+    ({ slack_id }) => slack_id === body.user.id
+  );
 
   const gcalEvent = await createCalendarEvent({
     summary: meeting_title.value,
@@ -81,7 +80,7 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
       createRequest: { requestId: Date.now() },
     },
     recurrence: [rule?.toString().split("\n")[1]],
-    attendees: emails,
+    attendees: participants.map(({ email }) => ({ email })),
     extendedProperties: {
       private: {
         vrms_project_id: Number(meeting_project.selected_option.value),
@@ -91,7 +90,7 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
 
   const newMeeting = await prisma.meeting.create({
     data: {
-      created_by: body.user.id,
+      created_by_id: meetingCreator.id,
       duration: Number(meeting_duration.selected_option.value.split(" ")[0]),
       gcal_event_id: gcalEvent.id,
       gcal_event_link: gcalEvent.htmlLink,
@@ -102,7 +101,10 @@ export const createMeeting = async ({ ack, body, view, client, logger }) => {
       title: meeting_title.value,
       rrule: rule?.toString(),
       participants: {
-        create: participantSlackIds,
+        create: participants.map(({ id }) => ({
+          user_id: id,
+          added_by_id: meetingCreator.id,
+        })),
       },
     },
   });

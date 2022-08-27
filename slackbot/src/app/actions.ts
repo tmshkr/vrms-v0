@@ -16,12 +16,13 @@ export const registerActions = () => {
 
   app.action("create_new_meeting", async ({ body, client, ack, logger }) => {
     await ack();
-    const userProjects = await prisma.teamMember.findMany({
-      where: { slack_id: body.user.id },
-      include: { project: true },
+    const slack_id = body.user.id;
+    const { team_assignments } = await prisma.user.findUnique({
+      where: { slack_id },
+      select: { team_assignments: { select: { project: true } } },
     });
 
-    if (!userProjects.length) {
+    if (!team_assignments.length) {
       await client.views.open({
         trigger_id: body.trigger_id,
         view: {
@@ -50,7 +51,7 @@ export const registerActions = () => {
     } else {
       await client.views.open({
         trigger_id: body.trigger_id,
-        view: createMeetingModal(userProjects, body.user.id),
+        view: createMeetingModal(team_assignments, slack_id),
       });
     }
   });

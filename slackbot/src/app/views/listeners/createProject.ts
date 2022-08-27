@@ -7,23 +7,37 @@ export const createProject = async ({ ack, body, view, client, logger }) => {
 
   const values = getInnerValues(view.state.values);
   const { new_project_title, team_members } = values;
-  console.log(values);
+
+  const owner = await prisma.user.findUnique({
+    where: { slack_id: body.user.id },
+    select: { id: true },
+  });
+  const members = await prisma.user.findMany({
+    where: {
+      slack_id: {
+        in: team_members.selected_conversations,
+      },
+    },
+    select: { id: true, slack_id: true },
+  });
 
   await prisma.project.create({
     data: {
       name: new_project_title.value,
-      created_by: body.user.id,
+      created_by_id: owner.id,
       team_members: {
-        create: team_members.selected_conversations.map((slack_id) => {
+        create: members.map(({ id, slack_id }) => {
           if (slack_id === body.user.id) {
             return {
-              slack_id,
+              user_id: id,
               role: "OWNER",
+              added_by_id: owner.id,
             };
           } else {
             return {
-              slack_id,
+              user_id: id,
               role: "MEMBER",
+              added_by_id: owner.id,
             };
           }
         }),

@@ -1,4 +1,4 @@
-export const createMeetingModal = (userProjects, slack_id) => ({
+export const createMeetingModal = (team_assignments, slack_id) => ({
   type: "modal",
   // View identifier
   callback_id: "create_meeting_modal",
@@ -26,13 +26,13 @@ export const createMeetingModal = (userProjects, slack_id) => ({
           type: "plain_text",
           text: "Select a project",
         },
-        options: userProjects.map(({ project }) => ({
+        options: team_assignments.map(({ project }) => ({
           text: {
             type: "plain_text",
-            text: project?.name,
+            text: project.name,
             emoji: true,
           },
-          value: String(project?.id),
+          value: String(project.id),
         })),
         action_id: "meeting_project",
       },
@@ -78,7 +78,6 @@ export const createMeetingModal = (userProjects, slack_id) => ({
         text: "Which channel should this meeting be in?",
       },
     },
-    // TODO: make it so user can't select a date in the past
     {
       type: "input",
       element: {
