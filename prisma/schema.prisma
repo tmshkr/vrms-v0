@@ -20,51 +20,57 @@ enum AppRole {
 }
 
 model AppRoleOnUser {
-  role       AppRole
-  user_id    Int
-  user       User     @relation(fields: [user_id], references: [id])
+  user_id Int
+  role    AppRole
+
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
 
   @@id([user_id, role])
 }
 
 model Account {
-  id                  String   @id @default(cuid())
-  user_id             Int
-  type                String
   provider            String
   provider_account_id String
-  refresh_token       String?  @db.Text
-  access_token        String?  @db.Text
-  expires_at          Int?
-  token_type          String?
-  scope               String?
-  id_token            String?  @db.Text
-  session_state       String?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @default(now())
+
+  access_token  String? @db.Text
+  id_token      String? @db.Text
+  refresh_token String? @db.Text
+  scope         String?
+  session_state String?
+  token_type    String?
+  type          String
+  user_id       Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  expires_at Int?
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([provider, provider_account_id])
+  @@id([provider, provider_account_id])
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  slack_id            String               @unique
+  id Int @id @default(autoincrement())
+
+  email     String
+  real_name String
+  slack_id  String @unique
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
   accounts            Account[]
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
-  email               String
   meeting_assignments MeetingParticipant[]
-  real_name           String
-  team_assignments    TeamMember[]
   members_added       TeamMember[]         @relation("AddMember")
   participants_added  MeetingParticipant[] @relation("AddParticipant")
-  created_at          DateTime             @default(now())
-  updated_at          DateTime             @default(now())
+  team_assignments    TeamMember[]
 
   @@index([slack_id])
 }
@@ -87,50 +93,59 @@ enum ProjectRole {
 }
 
 model TeamMember {
-  added_by_id   Int
+  user_id    Int
+  project_id Int
+
+  added_by_id Int
+  is_active   Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
   added_by_user User        @relation(name: "AddMember", fields: [added_by_id], references: [id])
-  is_active     Boolean     @default(true)
+  member        User        @relation(fields: [user_id], references: [id])
   project       Project     @relation(fields: [project_id], references: [id])
-  project_id    Int
   role          ProjectRole @default(MEMBER)
-  user          User        @relation(fields: [user_id], references: [id])
-  user_id       Int
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @default(now())
 
   @@id([user_id, project_id])
 }
 
 model Meeting {
-  id               Int                  @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   created_by_id    Int
-  created_by_user  User                 @relation(fields: [created_by_id], references: [id])
   duration         Int // in minutes
-  is_active        Boolean              @default(true)
   gcal_event_id    String
   gcal_event_link  String
   google_meet_link String
-  participants     MeetingParticipant[]
-  project          Project              @relation(fields: [project_id], references: [id])
+  is_active        Boolean  @default(true)
   project_id       Int
   rrule            String?
   slack_channel_id String
   start_date       DateTime
   title            String
-  created_at       DateTime             @default(now())
-  updated_at       DateTime             @default(now())
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  created_by_user User                 @relation(fields: [created_by_id], references: [id])
+  participants    MeetingParticipant[]
+  project         Project              @relation(fields: [project_id], references: [id])
 }
 
 model MeetingParticipant {
-  is_active     Boolean  @default(true)
-  meeting       Meeting  @relation(fields: [meeting_id], references: [id])
-  meeting_id    Int
-  user_id       Int
-  participant   User     @relation(fields: [user_id], references: [id])
-  added_by_id   Int
-  added_by_user User     @relation(name: "AddParticipant", fields: [added_by_id], references: [id])
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
+  meeting_id Int
+  user_id    Int
+
+  added_by_id Int
+  is_active   Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  added_by_user User    @relation(name: "AddParticipant", fields: [added_by_id], references: [id])
+  meeting       Meeting @relation(fields: [meeting_id], references: [id])
+  participant   User    @relation(fields: [user_id], references: [id])
 
   @@id([meeting_id, user_id])
 }
