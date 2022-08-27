@@ -18,7 +18,18 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { provider, providerAccountId, gh_username } = nextToken;
+  const {
+    access_token,
+    email,
+    name,
+    gh_username,
+    provider,
+    provider_account_id,
+    scope,
+    token_type,
+    type,
+    two_factor_authentication,
+  } = nextToken;
 
   if (provider !== "github") {
     res.status(501).send("Provider not implemented");
@@ -26,7 +37,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    var { slack_id } = jwt.verify(req.query.token, process.env.NEXTAUTH_SECRET);
+    var { vrms_user_id, slack_id } = jwt.verify(
+      req.query.token,
+      process.env.NEXTAUTH_SECRET
+    );
   } catch (err) {
     console.error(err);
     res.redirect("/api/auth/signin");
@@ -34,29 +48,30 @@ export default async function handler(req, res) {
   }
 
   try {
-    var { count } = await prisma.user.updateMany({
-      where: { AND: [{ slack_id }, { gh_account_id: null }] },
+    await prisma.account.create({
       data: {
-        gh_account_id: Number(providerAccountId),
+        provider,
+        provider_account_id,
+        access_token,
+        email,
+        gh_username,
+        name,
+        scope,
+        token_type,
+        type,
+        two_factor_authentication,
+        user_id: vrms_user_id,
       },
     });
-  } catch (err) {
-    console.error(err);
-  }
 
-  if (count === 1) {
-    console.log(`Connected Slack account`, slack_id);
+    res.send("Account connected");
     notifyAccountConnected(slack_id, gh_username);
-    res.redirect("/");
-  } else if (count === 0) {
-    res.send("It looks like your account is already connected");
-  } else {
-    console.error("There was a problem updating the Slack connection", {
-      provider,
-      providerAccountId,
-      gh_username,
-      slack_id,
-    });
-    res.status(500).send("Server error");
+  } catch (err) {
+    if (err.code === "P2002") {
+      res.send("It looks like this account is already connected");
+    } else {
+      console.error(err);
+      res.status(500).send("There was a problem connecting your account");
+    }
   }
 }
