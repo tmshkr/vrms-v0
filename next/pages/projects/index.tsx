@@ -27,7 +27,9 @@ const Projects: NextPage = (props: any) => {
 export default Projects;
 
 export async function getServerSideProps(context) {
-  const projects = await prisma.project.findMany();
+  const projects = await prisma.project.findMany({
+    select: { id: true, name: true },
+  });
   return {
     props: { projects },
   };
