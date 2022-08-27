@@ -20,36 +20,43 @@ enum AppRole {
 }
 
 model AppRoleOnUser {
-  id       Int     @id @default(autoincrement())
-  role     AppRole
-  slack_id String
-  user     User    @relation(fields: [slack_id], references: [slack_id])
+  role       AppRole
+  user_id    Int
+  user       User     @relation(fields: [user_id], references: [id])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
 
-  @@unique([slack_id, role])
+  @@id([user_id, role])
 }
 
 model User {
-  slack_id            String               @id
+  id                  Int                  @id @default(autoincrement())
+  slack_id            String               @unique
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
   email               String
   meeting_assignments MeetingParticipant[]
   real_name           String
-  gh_account_id       Int?                 @unique
   team_assignments    TeamMember[]
+  members_added       TeamMember[]         @relation("AddMember")
+  participants_added  MeetingParticipant[] @relation("AddParticipant")
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @default(now())
 
-  @@index([gh_account_id])
+  @@index([slack_id])
 }
 
 model Project {
   id              Int          @id @default(autoincrement())
   is_active       Boolean      @default(true)
-  created_by      String
-  created_by_user User         @relation(fields: [created_by], references: [slack_id])
+  created_by      Int
+  created_by_user User         @relation(fields: [created_by], references: [id])
   meetings        Meeting[]
   name            String
   team_members    TeamMember[]
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
 }
 
 enum ProjectRole {
@@ -58,21 +65,24 @@ enum ProjectRole {
 }
 
 model TeamMember {
-  id         Int         @id @default(autoincrement())
-  is_active  Boolean     @default(true)
-  project    Project     @relation(fields: [project_id], references: [id])
-  project_id Int
-  role       ProjectRole @default(MEMBER)
-  slack_id   String
-  user       User        @relation(fields: [slack_id], references: [slack_id])
+  is_active     Boolean     @default(true)
+  project       Project     @relation(fields: [project_id], references: [id])
+  project_id    Int
+  role          ProjectRole @default(MEMBER)
+  user_id       Int
+  member        User        @relation(fields: [user_id], references: [id])
+  added_by      Int
+  added_by_user User        @relation(name: "AddMember", fields: [added_by], references: [id])
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @default(now())
 
-  @@unique([slack_id, project_id])
+  @@id([user_id, project_id])
 }
 
 model Meeting {
   id               Int                  @id @default(autoincrement())
-  created_by       String
-  created_by_user  User                 @relation(fields: [created_by], references: [slack_id])
+  created_by       Int
+  created_by_user  User                 @relation(fields: [created_by], references: [id])
   duration         Int // in minutes
   is_active        Boolean              @default(true)
   gcal_event_id    String
@@ -85,15 +95,20 @@ model Meeting {
   slack_channel_id String
   start_date       DateTime
   title            String
+  created_at       DateTime             @default(now())
+  updated_at       DateTime             @default(now())
 }
 
 model MeetingParticipant {
-  id         Int     @id @default(autoincrement())
-  is_active  Boolean @default(true)
-  meeting    Meeting @relation(fields: [meeting_id], references: [id])
-  meeting_id Int
-  slack_id   String
-  user       User    @relation(fields: [slack_id], references: [slack_id])
+  is_active     Boolean  @default(true)
+  meeting       Meeting  @relation(fields: [meeting_id], references: [id])
+  meeting_id    Int
+  user_id       Int
+  participant   User     @relation(fields: [user_id], references: [id])
+  added_by      Int
+  added_by_user User     @relation(name: "AddParticipant", fields: [added_by], references: [id])
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
 
-  @@unique([meeting_id, slack_id])
+  @@id([meeting_id, user_id])
 }
