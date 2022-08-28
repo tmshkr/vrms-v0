@@ -17,11 +17,14 @@ const app = new App({
   const users = await app.client.users.list().then((res) => {
     return res.members
       .filter((user) => user.is_bot === false && user.name !== "slackbot")
-      .map((user) => ({
-        slack_id: user.id,
-        real_name: user.real_name,
-        email: user.profile.email,
-      }));
+      .map((user) => {
+        return {
+          slack_id: user.id,
+          real_name: user.real_name,
+          email: user.profile.email,
+          profile_image: user.profile.image_512,
+        };
+      });
   });
 
   const { count } = await prisma.user.createMany({
