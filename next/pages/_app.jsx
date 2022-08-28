@@ -45,11 +45,13 @@ function Auth({ pageAuth, children }) {
     );
   }
 
-  const { app_roles } = data?.user.vrms_user;
+  if (data.user.vrms_user) {
+    const { app_roles } = data.user.vrms_user;
 
-  for (const role of app_roles) {
-    if (allowedRoles.includes(role)) {
-      return children;
+    for (const role of app_roles) {
+      if (allowedRoles.includes(role)) {
+        return children;
+      }
     }
   }
 

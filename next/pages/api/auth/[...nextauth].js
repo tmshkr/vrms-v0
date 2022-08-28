@@ -60,10 +60,14 @@ const nextAuthOptions = (req, res) => {
                 },
               },
             })
-            .then(({ user }) => ({
-              ...user,
-              app_roles: user.app_roles.map(({ role }) => role),
-            }));
+            .then((data) => {
+              if (!data) return null;
+              const { user } = data;
+              return {
+                ...user,
+                app_roles: user.app_roles.map(({ role }) => role),
+              };
+            });
 
           cookies.set("vrms_user", JSON.stringify(vrms_user), {
             signed: true,
