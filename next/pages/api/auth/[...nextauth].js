@@ -36,6 +36,7 @@ const nextAuthOptions = (req, res) => {
         session.user.two_factor_authentication =
           token.two_factor_authentication;
 
+        // cache vrms_user in a cookie to prevent excessive db queries
         try {
           var vrms_user = JSON.parse(
             cookies.get("vrms_user", { signed: true }) || null
@@ -66,7 +67,7 @@ const nextAuthOptions = (req, res) => {
 
           cookies.set("vrms_user", JSON.stringify(vrms_user), {
             signed: true,
-            maxAge: 1000 * 60,
+            maxAge: 1000 * 10,
           });
         }
 
