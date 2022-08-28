@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import prisma from "lib/prisma";
-import { getMongoClient } from "~/lib/mongo";
 const Cookies = require("cookies");
 
 // For more information on each option (and a full list of options) go to
@@ -30,46 +29,56 @@ const nextAuthOptions = (req, res) => {
         return baseUrl;
       },
       async session(args) {
-        console.log("session", args);
         const { session, token } = args;
-        // session.user.gh_username = token.gh_username;
-        // session.user.two_factor_authentication =
-        //   token.two_factor_authentication;
+        const { provider, provider_account_id } = token;
 
-        // store the roles in a cookie to prevent excessive db queries
-        // let app_roles = cookies.get("app_roles", { signed: true });
-        // if (!app_roles) {
-        //   app_roles = await prisma.user
-        //     .findUnique({
-        //       where: {
-        //         gh_account_id: Number(token.providerAccountId),
-        //       },
-        //       select: {
-        //         app_roles: {
-        //           select: { role: true },
-        //         },
-        //       },
-        //     })
-        //     .then(({ app_roles }) =>
-        //       app_roles.map(({ role }) => role).join(",")
-        //     );
+        session.user.gh_username = token.gh_username;
+        session.user.two_factor_authentication =
+          token.two_factor_authentication;
 
-        //   cookies.set("app_roles", app_roles, {
-        //     signed: true,
-        //     maxAge: 1000 * 60,
-        //   });
-        // }
+        try {
+          var vrms_user = JSON.parse(
+            cookies.get("vrms_user", { signed: true }) || null
+          );
+        } catch (err) {
+          console.error("Error getting vrms_user cookie: ", err);
+        }
 
-        // session.user.app_roles = app_roles;
+        if (!vrms_user) {
+          vrms_user = await prisma.account
+            .findUnique({
+              where: {
+                provider_provider_account_id: {
+                  provider,
+                  provider_account_id,
+                },
+              },
+              select: {
+                user: {
+                  select: { id: true, slack_id: true, app_roles: true },
+                },
+              },
+            })
+            .then(({ user }) => ({
+              ...user,
+              app_roles: user.app_roles.map(({ role }) => role),
+            }));
+
+          cookies.set("vrms_user", JSON.stringify(vrms_user), {
+            signed: true,
+            maxAge: 1000 * 60,
+          });
+        }
+
+        session.user.vrms_user = vrms_user;
         return session;
       },
       async jwt(args) {
-        console.log("jwt", args);
         const { token, user, account, profile } = args;
 
-        // account and profile are available during sign in
-        if (account && profile) {
-          const { name, email, image } = user;
+        // account, profile, and user are available during sign in
+        if (account && profile && user) {
+          const { name, email } = user;
           const {
             provider,
             type,
@@ -95,8 +104,6 @@ const nextAuthOptions = (req, res) => {
                 provider_provider_account_id: { provider, provider_account_id },
               },
               data: {
-                provider,
-                provider_account_id,
                 access_token,
                 email,
                 gh_username,
