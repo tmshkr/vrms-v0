@@ -11,6 +11,7 @@ const typeDefs = `
   }
 
   type User {
+    id: Int
     slack_id: String
     meetings: [Meeting]
     projects: [Project]
@@ -46,6 +47,7 @@ const resolvers = {
     users(parent, args, context) {
       return prisma.user.findMany({
         select: {
+          id: true,
           email: false,
           real_name: true,
           slack_id: true,
@@ -64,7 +66,7 @@ const resolvers = {
     meetings(parent, args, context) {
       return prisma.meetingParticipant
         .findMany({
-          where: { slack_id: parent.slack_id },
+          where: { user_id: parent.id },
           include: { meeting: true },
         })
         .then((data) => data.map(({ meeting }) => meeting));
@@ -72,7 +74,7 @@ const resolvers = {
     projects(parent, args, context) {
       return prisma.teamMember
         .findMany({
-          where: { slack_id: parent.slack_id },
+          where: { user_id: parent.id },
           include: { project: true },
         })
         .then((data) => data.map(({ project }) => project));
@@ -90,7 +92,7 @@ const resolvers = {
         .findMany({
           where: { project_id: parent.id },
           include: {
-            user: {
+            member: {
               select: {
                 email: false,
                 real_name: true,
@@ -100,7 +102,7 @@ const resolvers = {
           },
         })
         .then((data) => {
-          return data.map(({ user }) => user);
+          return data.map(({ member }) => member);
         });
     },
   },
@@ -111,7 +113,7 @@ const resolvers = {
         .findMany({
           where: { meeting_id: parent.id },
           include: {
-            user: {
+            participant: {
               select: {
                 email: false,
                 real_name: true,
@@ -121,7 +123,7 @@ const resolvers = {
           },
         })
         .then((data) => {
-          return data.map(({ user }) => user);
+          return data.map(({ participant }) => participant);
         });
     },
     project(parent, args, context) {
