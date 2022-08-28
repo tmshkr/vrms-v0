@@ -37,9 +37,9 @@ export function Dashboard({ children }) {
     if (status === "authenticated") {
       const user: any = session.user;
       setUser(user);
-      if (!user.onboarding_complete) {
-        router.push("/onboard");
-      }
+      // if (!user.onboarding_complete) {
+      //   router.push("/onboard");
+      // }
     } else if (status === "unauthenticated") {
       setUser(null);
     }
@@ -105,18 +105,28 @@ export function Dashboard({ children }) {
                         >
                           <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                             <Menu.Item>
-                              <Link href={`/api/auth/signout`} passHref>
-                                <a
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    signOut();
-                                  }}
-                                  className={
-                                    "block px-4 py-2 text-sm text-gray-700"
-                                  }
-                                >
-                                  Sign out
-                                </a>
+                              <Link
+                                href="/admin"
+                                legacyBehavior={false}
+                                className="block px-4 py-2 text-sm text-gray-700"
+                              >
+                                Admin
+                              </Link>
+                            </Menu.Item>
+                            <Menu.Item>
+                              <Link
+                                href={`/api/auth/signout`}
+                                passHref
+                                legacyBehavior={false}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  signOut();
+                                }}
+                                className={
+                                  "block px-4 py-2 text-sm text-gray-700"
+                                }
+                              >
+                                Sign out
                               </Link>
                             </Menu.Item>
                           </Menu.Items>
