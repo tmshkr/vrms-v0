@@ -35,34 +35,32 @@ model Account {
   provider            String
   provider_account_id String
 
-  access_token              String?  @db.Text
+  access_token              String  @db.Text
   email                     String
   gh_username               String?
-  id_token                  String?  @db.Text
   name                      String
-  refresh_token             String?  @db.Text
-  scope                     String?
-  session_state             String?
-  token_type                String?
+  scope                     String
+  token_type                String
   type                      String
-  two_factor_authentication Boolean?
+  two_factor_authentication Boolean
   vrms_user_id              Int
 
-  expires_at Int?
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
   user User @relation(fields: [vrms_user_id], references: [id], onDelete: Cascade)
 
   @@id([provider, provider_account_id])
+  @@unique([provider, vrms_user_id])
 }
 
 model User {
   id Int @id @default(autoincrement())
 
-  email     String
-  real_name String
-  slack_id  String @unique
+  email         String @unique
+  real_name     String
+  profile_image String
+  slack_id      String @unique
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
@@ -80,7 +78,8 @@ model User {
 }
 
 model Project {
-  id              Int          @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   is_active       Boolean      @default(true)
   created_by_id   Int
   created_by_user User         @relation(fields: [created_by_id], references: [id])
