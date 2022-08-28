@@ -38,11 +38,7 @@ function Auth({ pageAuth, children }) {
   const { allowedRoles } = pageAuth;
 
   if (status === "loading") {
-    return (
-      <div>
-        <h1 className="mt-12 text-center">Loading...</h1>
-      </div>
-    );
+    return <h1 className="mt-12 text-center">Loading...</h1>;
   }
 
   if (data.user.vrms_user) {
@@ -56,10 +52,8 @@ function Auth({ pageAuth, children }) {
   }
 
   return (
-    <div>
-      <h1 className="mt-12 text-center">
-        You are not authorized to access this page
-      </h1>
-    </div>
+    <h1 className="mt-12 text-center">
+      You are not authorized to access this page
+    </h1>
   );
 }
