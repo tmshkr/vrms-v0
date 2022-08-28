@@ -48,9 +48,9 @@ model Account {
   two_factor_authentication Boolean?
   vrms_user_id              Int
 
+  expires_at Int?
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
-  expires_at Int?
 
   user User @relation(fields: [vrms_user_id], references: [id], onDelete: Cascade)
 
@@ -101,15 +101,15 @@ model TeamMember {
   project_id Int
 
   added_by_id Int
-  is_active   Boolean @default(true)
+  is_active   Boolean     @default(true)
+  role        ProjectRole @default(MEMBER)
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  added_by_user User        @relation(name: "AddMember", fields: [added_by_id], references: [id])
-  member        User        @relation(fields: [user_id], references: [id])
-  project       Project     @relation(fields: [project_id], references: [id])
-  role          ProjectRole @default(MEMBER)
+  added_by_user User    @relation(name: "AddMember", fields: [added_by_id], references: [id])
+  member        User    @relation(fields: [user_id], references: [id])
+  project       Project @relation(fields: [project_id], references: [id])
 
   @@id([user_id, project_id])
 }
