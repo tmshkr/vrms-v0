@@ -57,10 +57,11 @@ model Account {
 model User {
   id Int @id @default(autoincrement())
 
-  email         String @unique
-  real_name     String
-  profile_image String
-  slack_id      String @unique
+  completed_onboarding Boolean @default(false)
+  email                String  @unique
+  real_name            String
+  profile_image        String
+  slack_id             String  @unique
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
@@ -86,6 +87,7 @@ model Project {
   meetings        Meeting[]
   name            String
   team_members    TeamMember[]
+  
   created_at      DateTime     @default(now())
   updated_at      DateTime     @default(now())
 }
