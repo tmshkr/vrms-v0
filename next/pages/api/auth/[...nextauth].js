@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import prisma from "lib/prisma";
+import { getMongoClient } from "~/lib/mongo";
 const Cookies = require("cookies");
 
 // For more information on each option (and a full list of options) go to
@@ -30,11 +31,15 @@ const nextAuthOptions = (req, res) => {
       },
       async session(args) {
         const { session, token } = args;
-        const { provider, provider_account_id } = token;
+        const {
+          gh_username,
+          provider,
+          provider_account_id,
+          two_factor_authentication,
+        } = token;
 
-        session.user.gh_username = token.gh_username;
-        session.user.two_factor_authentication =
-          token.two_factor_authentication;
+        session.user.gh_username = gh_username;
+        session.user.two_factor_authentication = two_factor_authentication;
 
         // cache vrms_user in a cookie to prevent excessive db queries
         try {
@@ -119,10 +124,30 @@ const nextAuthOptions = (req, res) => {
                 two_factor_authentication,
               },
             })
-            .catch((err) => {
+            .catch(async (err) => {
               const { meta } = err;
-              if (meta.cause == "Record to update not found.") {
+              if (meta.cause === "Record to update not found.") {
                 console.log("User logged in without an existing VRMS account");
+                // save unconnected account to mongo
+                const mongoClient = await getMongoClient();
+                mongoClient.db().collection("unconnectedAccounts").updateOne(
+                  { provider, provider_account_id },
+                  {
+                    $set: {
+                      provider,
+                      provider_account_id,
+                      access_token,
+                      email,
+                      gh_username,
+                      name,
+                      scope,
+                      token_type,
+                      type,
+                      two_factor_authentication,
+                    },
+                  },
+                  { upsert: true }
+                );
               } else {
                 console.error(err);
               }
