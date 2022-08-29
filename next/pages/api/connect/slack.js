@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Cookies from "cookies";
 import { getToken } from "next-auth/jwt";
+import { getMongoClient } from "~/lib/mongo";
 import prisma from "lib/prisma";
 import { notifyAccountConnected } from "lib/slack";
 
@@ -72,8 +73,15 @@ export default async function handler(req, res) {
       gh_username,
     });
 
-    notifyAccountConnected(slack_id, gh_username);
     res.redirect("/");
+    notifyAccountConnected(slack_id, gh_username);
+
+    // delete any unconnectedAccount for this user
+    const mongoClient = await getMongoClient();
+    mongoClient
+      .db()
+      .collection("unconnectedAccounts")
+      .deleteOne({ provider, provider_account_id });
   } catch (err) {
     if (err.code === "P2002") {
       res.send("It looks like this account is already connected");
