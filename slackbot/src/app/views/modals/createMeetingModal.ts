@@ -1,4 +1,48 @@
-export const createMeetingModal = (team_assignments, slack_id) => ({
+import prisma from "lib/prisma";
+
+export const createMeetingModal = async ({ body, client, ack, logger }) => {
+  await ack();
+  const slack_id = body.user.id;
+  const { team_assignments } = await prisma.user.findUnique({
+    where: { slack_id },
+    select: { team_assignments: { select: { project: true } } },
+  });
+
+  if (!team_assignments.length) {
+    await client.views.open({
+      trigger_id: body.trigger_id,
+      view: {
+        type: "modal",
+        close: {
+          type: "plain_text",
+          text: "Close",
+          emoji: true,
+        },
+        title: {
+          type: "plain_text",
+          text: "No Projects Found",
+          emoji: true,
+        },
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: "You must be working on a project to create a meeting.",
+            },
+          },
+        ],
+      },
+    });
+  } else {
+    await client.views.open({
+      trigger_id: body.trigger_id,
+      view: renderMeetingModal(team_assignments, slack_id),
+    });
+  }
+};
+
+const renderMeetingModal = (team_assignments, slack_id) => ({
   type: "modal",
   // View identifier
   callback_id: "create_meeting_modal",
