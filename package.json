@@ -38,18 +38,20 @@
     "eslint": "8.16.0",
     "eslint-config-next": "12.1.6",
     "nodemon": "^2.0.15",
-    "prisma": "^3.15.1",
+    "prisma": "^4.2.1",
     "typescript": "^4.6.2"
   },
   "dependencies": {
-    "@prisma/client": "^3.15.1",
+    "@prisma/client": "^4.2.1",
     "@slack/bolt": "^3.10.0",
     "axios": "^0.27.2",
     "cookies": "^0.8.0",
+    "dayjs": "^1.11.5",
     "googleapis": "^104.0.0",
     "js-cookie": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^4.9.0",
+    "octokit": "^2.0.7",
     "prisma-erd-generator": "^1.1.0",
     "ts-node": "^10.7.0"
   },

@@ -1,5 +1,4 @@
 import { app } from "app";
-import prisma from "lib/prisma";
 import { getMongoClient } from "lib/mongo";
 
 import { createMeetingModal } from "app/views/modals/createMeetingModal";
@@ -13,47 +12,7 @@ export const registerActions = () => {
   });
 
   app.action("create_new_project", createProjectModal);
-
-  app.action("create_new_meeting", async ({ body, client, ack, logger }) => {
-    await ack();
-    const userProjects = await prisma.teamMember.findMany({
-      where: { slack_id: body.user.id },
-      include: { project: true },
-    });
-
-    if (!userProjects.length) {
-      await client.views.open({
-        trigger_id: body.trigger_id,
-        view: {
-          type: "modal",
-          close: {
-            type: "plain_text",
-            text: "Close",
-            emoji: true,
-          },
-          title: {
-            type: "plain_text",
-            text: "No Projects Found",
-            emoji: true,
-          },
-          blocks: [
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: "You must be working on a project to create a meeting.",
-              },
-            },
-          ],
-        },
-      });
-    } else {
-      await client.views.open({
-        trigger_id: body.trigger_id,
-        view: createMeetingModal(userProjects, body.user.id),
-      });
-    }
-  });
+  app.action("create_new_meeting", createMeetingModal);
 
   app.action("open_dashboard", async ({ body, ack, say }) => {
     await ack();

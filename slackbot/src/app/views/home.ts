@@ -1,47 +1,8 @@
 import prisma from "lib/prisma";
-import { getMongoClient } from "lib/mongo";
 import dayjs from "lib/dayjs";
 import { getNextOccurrence } from "lib/rrule";
 import axios from "axios";
 const jwt = require("jsonwebtoken");
-
-const renderProject = (project) => {
-  return {
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text: `:small_blue_diamond: ${project.name}`,
-    },
-  };
-};
-
-const renderMeeting = (meeting) => {
-  const nextMeeting = meeting.rrule
-    ? getNextOccurrence(meeting.rrule)
-    : meeting.start_date;
-
-  const url = new URL("https://www.google.com/calendar/event");
-  url.searchParams.set(
-    "eid",
-    Buffer.from(
-      `${meeting.gcal_event_id}_${dayjs(nextMeeting)
-        .utc()
-        .format("YYYYMMDDTHHmmss[Z]")} ${process.env.GOOGLE_CALENDAR_ID}`
-    )
-      .toString("base64")
-      .replace(/=/g, "")
-  );
-
-  return {
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text: `:small_blue_diamond: *${meeting.title}* – ${dayjs
-        .tz(nextMeeting)
-        .format("dddd, MMMM D, h:mm a")} – <${url}|Add to Calendar>`,
-    },
-  };
-};
 
 export const getHomeTab = async (slack_id) => {
   const [quote] = await axios
@@ -49,37 +10,26 @@ export const getHomeTab = async (slack_id) => {
     .then((res) => res.data)
     .catch(console.error);
 
-  const userOverview = await prisma.user
-    .findUnique({
-      where: { slack_id },
-      include: {
-        team_assignments: {
-          orderBy: { id: "asc" },
-          include: { project: true },
-        },
-        meeting_assignments: {
-          include: {
-            meeting: true,
-          },
+  const {
+    id: vrms_user_id,
+    accounts,
+    team_assignments,
+    meeting_assignments,
+  } = await prisma.user.findUnique({
+    where: { slack_id },
+    include: {
+      accounts: true,
+      team_assignments: {
+        orderBy: { created_at: "asc" },
+        select: { project: true },
+      },
+      meeting_assignments: {
+        select: {
+          meeting: true,
         },
       },
-    })
-    .then((user) => {
-      const userOverview = {} as any;
-      userOverview.projects = user.team_assignments?.map(({ project }) =>
-        renderProject(project)
-      );
-      userOverview.meetings = user.meeting_assignments?.map(({ meeting }) =>
-        renderMeeting(meeting)
-      );
-      return userOverview;
-    });
-
-  const mongoClient = await getMongoClient();
-  const connectedAccount = await mongoClient
-    .db()
-    .collection("accounts")
-    .findOne({ slack_id });
+    },
+  });
 
   return {
     user_id: slack_id,
@@ -104,13 +54,13 @@ export const getHomeTab = async (slack_id) => {
             type: "button",
             text: {
               type: "plain_text",
-              text: connectedAccount ? "Open Dashboard" : "Connect Account",
+              text: accounts.length ? "Open Dashboard" : "Connect Account",
               emoji: true,
             },
-            url: connectedAccount
+            url: accounts.length
               ? process.env.NEXTAUTH_URL
               : `${process.env.NEXTAUTH_URL}/api/connect/slack?token=${jwt.sign(
-                  { slack_id },
+                  { vrms_user_id, slack_id },
                   process.env.NEXTAUTH_SECRET
                 )}`,
             action_id: "open_dashboard",
@@ -145,7 +95,7 @@ export const getHomeTab = async (slack_id) => {
             action_id: "create_new_project",
           },
         },
-        ...userOverview.projects,
+        ...team_assignments?.map(({ project }) => renderProject(project)),
         {
           type: "divider",
         },
@@ -174,7 +124,7 @@ export const getHomeTab = async (slack_id) => {
             action_id: "create_new_meeting",
           },
         },
-        ...userOverview.meetings,
+        ...meeting_assignments?.map(({ meeting }) => renderMeeting(meeting)),
         {
           type: "divider",
         },
@@ -189,3 +139,41 @@ export const getHomeTab = async (slack_id) => {
     },
   };
 };
+
+function renderProject(project) {
+  return {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: `:small_blue_diamond: ${project.name}`,
+    },
+  };
+}
+
+function renderMeeting(meeting) {
+  const nextMeeting = meeting.rrule
+    ? getNextOccurrence(meeting.rrule)
+    : meeting.start_date;
+
+  const url = new URL("https://www.google.com/calendar/event");
+  url.searchParams.set(
+    "eid",
+    Buffer.from(
+      `${meeting.gcal_event_id}_${dayjs(nextMeeting)
+        .utc()
+        .format("YYYYMMDDTHHmmss[Z]")} ${process.env.GOOGLE_CALENDAR_ID}`
+    )
+      .toString("base64")
+      .replace(/=/g, "")
+  );
+
+  return {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: `:small_blue_diamond: *${meeting.title}* – ${dayjs
+        .tz(nextMeeting)
+        .format("dddd, MMMM D, h:mm a")} – <${url}|Add to Calendar>`,
+    },
+  };
+}

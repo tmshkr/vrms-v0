@@ -20,33 +20,76 @@ enum AppRole {
 }
 
 model AppRoleOnUser {
-  id       Int     @id @default(autoincrement())
-  role     AppRole
-  slack_id String
-  user     User    @relation(fields: [slack_id], references: [slack_id])
+  user_id Int
+  role    AppRole
 
-  @@unique([slack_id, role])
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@id([user_id, role])
+}
+
+model Account {
+  provider            String
+  provider_account_id String
+
+  access_token              String  @db.Text
+  email                     String
+  gh_username               String?
+  name                      String
+  scope                     String
+  token_type                String
+  type                      String
+  two_factor_authentication Boolean
+  vrms_user_id              Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  user User @relation(fields: [vrms_user_id], references: [id], onDelete: Cascade)
+
+  @@id([provider, provider_account_id])
+  @@unique([provider, vrms_user_id])
 }
 
 model User {
-  slack_id            String               @id
+  id Int @id @default(autoincrement())
+
+  completed_onboarding Boolean @default(false)
+  email                String  @unique
+  real_name            String
+  profile_image        String
+  slack_id             String  @unique
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  accounts            Account[]
   app_roles           AppRoleOnUser[]
   created_meetings    Meeting[]
   created_projects    Project[]
-  email               String
   meeting_assignments MeetingParticipant[]
-  real_name           String
+  members_added       TeamMember[]         @relation("AddMember")
+  participants_added  MeetingParticipant[] @relation("AddParticipant")
   team_assignments    TeamMember[]
+
+  @@index([slack_id])
 }
 
 model Project {
-  id              Int          @id @default(autoincrement())
+  id Int @id @default(autoincrement())
+
   is_active       Boolean      @default(true)
-  created_by      String
-  created_by_user User         @relation(fields: [created_by], references: [slack_id])
+  created_by_id   Int
+  created_by_user User         @relation(fields: [created_by_id], references: [id])
   meetings        Meeting[]
   name            String
   team_members    TeamMember[]
+  
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
 }
 
 enum ProjectRole {
@@ -55,42 +98,59 @@ enum ProjectRole {
 }
 
 model TeamMember {
-  id         Int         @id @default(autoincrement())
-  is_active  Boolean     @default(true)
-  project    Project     @relation(fields: [project_id], references: [id])
+  user_id    Int
   project_id Int
-  role       ProjectRole @default(MEMBER)
-  slack_id   String
-  user       User        @relation(fields: [slack_id], references: [slack_id])
 
-  @@unique([slack_id, project_id])
+  added_by_id Int
+  is_active   Boolean     @default(true)
+  role        ProjectRole @default(MEMBER)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  added_by_user User    @relation(name: "AddMember", fields: [added_by_id], references: [id])
+  member        User    @relation(fields: [user_id], references: [id])
+  project       Project @relation(fields: [project_id], references: [id])
+
+  @@id([user_id, project_id])
 }
 
 model Meeting {
-  id               Int                  @id @default(autoincrement())
-  created_by       String
-  created_by_user  User                 @relation(fields: [created_by], references: [slack_id])
+  id Int @id @default(autoincrement())
+
+  created_by_id    Int
   duration         Int // in minutes
-  is_active        Boolean              @default(true)
   gcal_event_id    String
   gcal_event_link  String
   google_meet_link String
-  participants     MeetingParticipant[]
-  project          Project              @relation(fields: [project_id], references: [id])
+  is_active        Boolean  @default(true)
   project_id       Int
   rrule            String?
   slack_channel_id String
   start_date       DateTime
   title            String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  created_by_user User                 @relation(fields: [created_by_id], references: [id])
+  participants    MeetingParticipant[]
+  project         Project              @relation(fields: [project_id], references: [id])
 }
 
 model MeetingParticipant {
-  id         Int     @id @default(autoincrement())
-  is_active  Boolean @default(true)
-  meeting    Meeting @relation(fields: [meeting_id], references: [id])
   meeting_id Int
-  slack_id   String
-  user       User    @relation(fields: [slack_id], references: [slack_id])
+  user_id    Int
 
-  @@unique([meeting_id, slack_id])
+  added_by_id Int
+  is_active   Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  added_by_user User    @relation(name: "AddParticipant", fields: [added_by_id], references: [id])
+  meeting       Meeting @relation(fields: [meeting_id], references: [id])
+  participant   User    @relation(fields: [user_id], references: [id])
+
+  @@id([meeting_id, user_id])
 }

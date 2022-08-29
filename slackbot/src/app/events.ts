@@ -21,6 +21,7 @@ export const registerEvents = () => {
         slack_id: user.id,
         real_name: user.real_name,
         email: user.profile.email,
+        profile_image: user.profile.image_512,
       };
       await prisma.user.upsert({
         where: { slack_id: user.id },
@@ -39,6 +40,7 @@ export const registerEvents = () => {
         data: {
           real_name: user.real_name,
           email: user.profile.email,
+          profile_image: user.profile.image_512,
         },
       });
       console.log(`updated user ${user.id}`);

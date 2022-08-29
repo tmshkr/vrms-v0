@@ -2,85 +2,164 @@ import NextAuth from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
 import prisma from "lib/prisma";
 import { getMongoClient } from "~/lib/mongo";
+const Cookies = require("cookies");
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
 
-export default NextAuth({
-  // https://next-auth.js.org/configuration/providers/oauth
-  providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
-  ],
-  theme: {
-    colorScheme: "light",
-  },
-  callbacks: {
-    async signIn(args) {
-      // console.log("signIn", args);
-      const { account, user, profile } = args;
-      return true;
+const nextAuthOptions = (req, res) => {
+  const cookies = new Cookies(req, res, {
+    keys: process.env.COOKIE_KEYS.split(" "),
+  });
+
+  return {
+    providers: [
+      GitHubProvider({
+        clientId: process.env.GITHUB_ID,
+        clientSecret: process.env.GITHUB_SECRET,
+      }),
+    ],
+    theme: {
+      colorScheme: "light",
     },
-    async redirect({ url, baseUrl }) {
-      return baseUrl;
-    },
-    async session(args) {
-      // console.log("session", args);
-      const { session, token, user } = args;
+    callbacks: {
+      async signIn(args) {
+        return true;
+      },
+      async redirect({ url, baseUrl }) {
+        return baseUrl;
+      },
+      async session(args) {
+        const { session, token } = args;
+        const {
+          gh_username,
+          provider,
+          provider_account_id,
+          two_factor_authentication,
+        } = token;
 
-      session.user.slack_id = token.slack_id;
-      session.user.gh_username = token.gh_username;
+        session.user.gh_username = gh_username;
+        session.user.two_factor_authentication = two_factor_authentication;
 
-      return session;
-    },
-    async jwt(args) {
-      // console.log("jwt", args);
-      const { token, user, account, profile } = args;
+        // cache vrms_user in a cookie to prevent excessive db queries
+        try {
+          var vrms_user = JSON.parse(
+            cookies.get("vrms_user", { signed: true }) || null
+          );
+        } catch (err) {
+          console.error("Error getting vrms_user cookie: ", err);
+        }
 
-      // account and profile are available during sign in
-      if (account && profile) {
-        const { provider, providerAccountId } = account;
-        const { login, two_factor_authentication } = profile;
-
-        token.provider = provider;
-        token.providerAccountId = providerAccountId;
-        token.gh_username = login;
-
-        const mongoClient = await getMongoClient();
-        const doc = await mongoClient
-          .db()
-          .collection("accounts")
-          .findOneAndUpdate(
-            { provider, providerAccountId },
-            {
-              $set: {
+        if (!vrms_user) {
+          vrms_user = await prisma.account
+            .findUnique({
+              where: {
+                provider_provider_account_id: {
+                  provider,
+                  provider_account_id,
+                },
+              },
+              select: {
+                user: {
+                  select: { id: true, slack_id: true, app_roles: true },
+                },
+              },
+            })
+            .then((data) => {
+              if (!data) return null;
+              const { user } = data;
+              return {
                 ...user,
-                ...account,
-                gh_username: login,
+                app_roles: user.app_roles.map(({ role }) => role),
+              };
+            });
+
+          cookies.set("vrms_user", JSON.stringify(vrms_user), {
+            signed: true,
+            maxAge: 1000 * 10,
+          });
+        }
+
+        session.user.vrms_user = vrms_user;
+        return session;
+      },
+      async jwt(args) {
+        const { token, user, account, profile } = args;
+
+        // account, profile, and user are available during sign in
+        if (account && profile && user) {
+          const { name, email } = user;
+          const {
+            provider,
+            type,
+            providerAccountId: provider_account_id,
+            access_token,
+            token_type,
+            scope,
+          } = account;
+          const { login: gh_username, two_factor_authentication } = profile;
+
+          token.provider = provider;
+          token.provider_account_id = provider_account_id;
+          token.gh_username = gh_username;
+          token.scope = scope;
+          token.type = type;
+          token.access_token = access_token;
+          token.token_type = token_type;
+          token.two_factor_authentication = two_factor_authentication;
+
+          await prisma.account
+            .update({
+              where: {
+                provider_provider_account_id: { provider, provider_account_id },
+              },
+              data: {
+                access_token,
+                email,
+                gh_username,
+                name,
+                scope,
+                token_type,
+                type,
                 two_factor_authentication,
               },
-            },
-            { upsert: true, returnDocument: "after" }
-          );
-
-        // slack_id will not be available until the user connects account
-        token.slack_id = doc.value.slack_id;
-      } else if (!token.slack_id) {
-        const { provider, providerAccountId } = token;
-        const mongoClient = await getMongoClient();
-        const doc = await mongoClient
-          .db()
-          .collection("accounts")
-          .findOne({ provider, providerAccountId });
-
-        if (doc.slack_id) {
-          token.slack_id = doc.slack_id;
+            })
+            .catch(async (err) => {
+              const { meta } = err;
+              if (meta.cause === "Record to update not found.") {
+                console.log("User logged in without an existing VRMS account");
+                // save unconnected account to mongo
+                const mongoClient = await getMongoClient();
+                mongoClient.db().collection("unconnectedAccounts").updateOne(
+                  { provider, provider_account_id },
+                  {
+                    $set: {
+                      provider,
+                      provider_account_id,
+                      access_token,
+                      email,
+                      gh_username,
+                      name,
+                      scope,
+                      token_type,
+                      type,
+                      two_factor_authentication,
+                    },
+                  },
+                  { upsert: true }
+                );
+              } else {
+                console.error(err);
+              }
+            });
         }
-      }
 
-      return token;
+        return token;
+      },
     },
-  },
-});
+  };
+};
+
+export default (req, res) => {
+  return NextAuth(req, res, nextAuthOptions(req, res));
+};

@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Cookies from "cookies";
 import { getToken } from "next-auth/jwt";
 import { getMongoClient } from "~/lib/mongo";
+import prisma from "lib/prisma";
 import { notifyAccountConnected } from "lib/slack";
 
 export default async function handler(req, res) {
@@ -18,44 +19,75 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { provider, providerAccountId } = nextToken;
+  const {
+    access_token,
+    email,
+    name,
+    gh_username,
+    provider,
+    provider_account_id,
+    scope,
+    token_type,
+    type,
+    two_factor_authentication,
+  } = nextToken;
+
+  if (provider !== "github") {
+    res.status(501).send("Provider not implemented");
+    return;
+  }
 
   try {
-    var { slack_id } = jwt.verify(req.query.token, process.env.NEXTAUTH_SECRET);
+    var { vrms_user_id, slack_id } = jwt.verify(
+      req.query.token,
+      process.env.NEXTAUTH_SECRET
+    );
   } catch (err) {
     console.error(err);
     res.redirect("/api/auth/signin");
     return;
   }
 
-  const accounts = await getMongoClient().then((client) =>
-    client.db().collection("accounts")
-  );
+  try {
+    await prisma.account.create({
+      data: {
+        provider,
+        provider_account_id,
+        access_token,
+        email,
+        gh_username,
+        name,
+        scope,
+        token_type,
+        type,
+        two_factor_authentication,
+        vrms_user_id,
+      },
+    });
 
-  const connectedAccount = await accounts.findOne({
-    slack_id,
-  });
-
-  if (connectedAccount) {
-    console.log("Slack account already connected", {
+    console.log("Account connected", {
+      vrms_user_id,
       slack_id,
       provider,
-      providerAccountId,
+      provider_account_id,
+      gh_username,
     });
+
     res.redirect("/");
-    return;
+    notifyAccountConnected(slack_id, gh_username);
+
+    // delete any unconnectedAccount for this user
+    const mongoClient = await getMongoClient();
+    mongoClient
+      .db()
+      .collection("unconnectedAccounts")
+      .deleteOne({ provider, provider_account_id });
+  } catch (err) {
+    if (err.code === "P2002") {
+      res.send("It looks like this account is already connected");
+    } else {
+      console.error(err);
+      res.status(500).send("There was a problem connecting your account");
+    }
   }
-
-  const result = await accounts.findOneAndUpdate(
-    {
-      provider,
-      providerAccountId,
-    },
-    { $set: { slack_id } },
-    { returnDocument: "after" }
-  );
-
-  console.log(`Connected Slack account`);
-  notifyAccountConnected(slack_id, result.value.gh_username);
-  res.redirect("/");
 }
