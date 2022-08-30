@@ -24,7 +24,7 @@ model AppRoleOnUser {
   role    AppRole
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   user User @relation(fields: [user_id], references: [id])
 
@@ -46,7 +46,7 @@ model Account {
   vrms_user_id              Int
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   user User @relation(fields: [vrms_user_id], references: [id], onDelete: Cascade)
 
@@ -64,7 +64,7 @@ model User {
   slack_id             String  @unique
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   accounts            Account[]
   app_roles           AppRoleOnUser[]
@@ -89,7 +89,7 @@ model Project {
   team_members    TeamMember[]
   
   created_at      DateTime     @default(now())
-  updated_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
 }
 
 enum ProjectRole {
@@ -106,7 +106,7 @@ model TeamMember {
   role        ProjectRole @default(MEMBER)
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   added_by_user User    @relation(name: "AddMember", fields: [added_by_id], references: [id])
   member        User    @relation(fields: [user_id], references: [id])
@@ -131,7 +131,7 @@ model Meeting {
   title            String
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   created_by_user User                 @relation(fields: [created_by_id], references: [id])
   participants    MeetingParticipant[]
@@ -146,7 +146,7 @@ model MeetingParticipant {
   is_active   Boolean @default(true)
 
   created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   added_by_user User    @relation(name: "AddParticipant", fields: [added_by_id], references: [id])
   meeting       Meeting @relation(fields: [meeting_id], references: [id])

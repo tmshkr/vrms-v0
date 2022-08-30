@@ -20,12 +20,4 @@ const prisma =
 
 if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 
-prisma.$use(async (params, next) => {
-  // TODO: handle updateMany
-  if (params.action === "update") {
-    params.args.data.updated_at = new Date();
-  }
-  return next(params);
-});
-
 export default prisma;
